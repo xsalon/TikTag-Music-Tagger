@@ -26,10 +26,16 @@
     </Compile>
     <Compile Include="TikTagGui\images_rc.py" />
     <Compile Include="TikTagGui\MainWindow.py" />
+    <Compile Include="TikTagGui\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TikTagGui\MyFileSystemModel.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagGui\Ui_MainWindow.py" />
+    <Compile Include="TikTagLogic\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TikTagLogic\" />
