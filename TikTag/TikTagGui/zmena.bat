@@ -1,0 +1,2 @@
+C:\Users\Marek\AppData\Local\Programs\Python\Python36-32\Scripts\pyuic5 -x untitled.ui -o Ui_MainWindow.py
+C:\Users\Marek\AppData\Local\Programs\Python\Python36-32\Scripts\pyrcc5 images.qrc -o images_rc.py
