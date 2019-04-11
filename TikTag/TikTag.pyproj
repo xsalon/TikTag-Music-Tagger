@@ -4,13 +4,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>e6238522-9f1a-4293-9735-c7473659918e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>TikTagGui\MainWindow.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>TikTag</Name>
     <RootNamespace>TikTag</RootNamespace>
+    <InterpreterId>Global|PythonCore|3.6-32</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,29 +22,42 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="setup.py">
+    <Compile Include="main.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagCtrl\MP3tag.py" />
+    <Compile Include="TikTagCtrl\Tagger.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagCtrl\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagGui\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagGui\images_rc.py" />
     <Compile Include="TikTagGui\MainWindow.py" />
-    <Compile Include="TikTagGui\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="TikTagGui\MyFileSystemModel.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagGui\Ui_MainWindow.py" />
-    <Compile Include="TikTagLogic\__init__.py">
+    <Compile Include="TikTagCtrl\Taggerz.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="TikTagLogic\" />
+    <Folder Include="TikTagCtrl\" />
     <Folder Include="TikTagGui\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TikTagGui\untitled.ui" />
     <Content Include="TikTagGui\zmena.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.6-32" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
