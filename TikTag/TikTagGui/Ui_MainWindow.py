@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'untitled.ui'
+# Form implementation generated from reading ui file 'mainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.1
 #
@@ -89,9 +89,6 @@ class Ui_MainWindow(object):
         self.labelSampleRate = QtWidgets.QLabel(self.groupBox)
         self.labelSampleRate.setObjectName("labelSampleRate")
         self.verticalLayout_2.addWidget(self.labelSampleRate)
-        self.labelBitDepth = QtWidgets.QLabel(self.groupBox)
-        self.labelBitDepth.setObjectName("labelBitDepth")
-        self.verticalLayout_2.addWidget(self.labelBitDepth)
         self.labelChannels = QtWidgets.QLabel(self.groupBox)
         self.labelChannels.setObjectName("labelChannels")
         self.verticalLayout_2.addWidget(self.labelChannels)
@@ -147,6 +144,12 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.listWidget.sizePolicy().hasHeightForWidth())
         self.listWidget.setSizePolicy(sizePolicy)
         self.listWidget.setMinimumSize(QtCore.QSize(300, 0))
+        self.listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.listWidget.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.listWidget.setIconSize(QtCore.QSize(120, 120))
+        self.listWidget.setFlow(QtWidgets.QListView.TopToBottom)
+        self.listWidget.setViewMode(QtWidgets.QListView.ListMode)
+        self.listWidget.setUniformItemSizes(True)
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout_3.addWidget(self.listWidget)
         self.verticalStackedWidget.addWidget(self.verticalStackedWidgetPage2)
@@ -194,7 +197,6 @@ class Ui_MainWindow(object):
         self.groupBox.setTitle(_translate("MainWindow", "General"))
         self.labelDuration.setText(_translate("MainWindow", "Duration: "))
         self.labelSampleRate.setText(_translate("MainWindow", "Sample Rate:"))
-        self.labelBitDepth.setText(_translate("MainWindow", "Bit Depth:"))
         self.labelChannels.setText(_translate("MainWindow", "Channels:"))
         self.labelBitrate.setText(_translate("MainWindow", "Bitrate:"))
         self.labelCodec.setText(_translate("MainWindow", "Codec:"))

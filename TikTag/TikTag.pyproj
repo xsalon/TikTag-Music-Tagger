@@ -32,6 +32,8 @@
     <Compile Include="TikTagCtrl\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TikTagGui\Ui_pathDialog.py" />
+    <Compile Include="TikTagGui\Ui_urlDialog.py" />
     <Compile Include="TikTagGui\__init__.py">
       <SubType>Code</SubType>
     </Compile>
