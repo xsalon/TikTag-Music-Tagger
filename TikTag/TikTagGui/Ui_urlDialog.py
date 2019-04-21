@@ -12,7 +12,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(400, 180)
+        Dialog.resize(400, 175)
+        Dialog.setMinimumSize(QtCore.QSize(400, 175))
+        Dialog.setMaximumSize(QtCore.QSize(400, 175))
         Dialog.setModal(True)
         self.formLayout = QtWidgets.QFormLayout(Dialog)
         self.formLayout.setContentsMargins(-1, 15, -1, -1)
@@ -33,14 +35,15 @@ class Ui_Dialog(object):
         self.imgTypeLabel = QtWidgets.QLabel(Dialog)
         self.imgTypeLabel.setObjectName("imgTypeLabel")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.imgTypeLabel)
-        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName("buttonBox")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.SpanningRole, self.buttonBox)
         self.imgTypeComboBox = QtWidgets.QComboBox(Dialog)
         self.imgTypeComboBox.setObjectName("imgTypeComboBox")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.imgTypeComboBox)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox.setMinimumSize(QtCore.QSize(0, 30))
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.buttonBox)
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -49,7 +52,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Open Image"))
         self.urlLabel.setText(_translate("Dialog", "URL:"))
         self.descLabel.setText(_translate("Dialog", "Description:"))
         self.imgTypeLabel.setText(_translate("Dialog", "Type:"))

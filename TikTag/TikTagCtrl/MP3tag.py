@@ -1,34 +1,43 @@
-from mutagen.mp3 import EasyMP3 as MP3
+from mutagen.mp3 import MP3
+from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import BitrateMode
 from mutagen.id3 import ID3, APIC, PictureType
+from TikTagCtrl.TaggerError import *
 from io import BytesIO
-import base64
 from PIL import Image
-import random
-import requests
 import datetime
+import os
 
 class AlbumArt():
     def __init__(self, tag):
         self.tag = tag
+        #popis pri hover
         self.type = str(tag.type).split('.')[1]
         self.encoding = str(tag.encoding).split('.')[1]
-        img = Image.open(BytesIO(tag.data))
-        self.width, self.height = img.size
-        self.resolution = str(self.width) + "x" + str(self.height)
-        self.size = str(len(tag.data)) + " B"
-        self.infoString = self.type + "\n" + str(self.tag.mime) + "\n" + self.encoding + "\n" + self.resolution + "\n" + self.size
+        self.mime = str(self.tag.mime)
+        self.desc = str(self.tag.desc)
+        try:
+            img = Image.open(BytesIO(tag.data))
+            self.width, self.height = img.size
+            self.resolution = str(self.width) + "x" + str(self.height)
+        except Exception:
+            raise ModuleTaggerError("Unsupported or currupted embedded image found!", "") 
+        self.size = "Size: " + str(len(tag.data)) + " B"
+        self.infoString = self.type + "\n" + self.mime + "\n" + self.encoding + "\n" + self.desc + "\n" + self.resolution + "\n" + self.size
+
 
 class MP3tag(object):
     def __init__(self, path):
-        self.file = MP3(path)
+        self.file = MP3(path, ID3=EasyID3)
         self.id3file = ID3(path)
+
         self.bitrateModeTable = {
             BitrateMode.UNKNOWN : "CBR",
             BitrateMode.CBR : "CBR",
             BitrateMode.VBR : "VBR",
             BitrateMode.ABR : "ABR"
         }
+
  
     def generalInfo(self):
         generalInfo = {}
@@ -51,35 +60,66 @@ class MP3tag(object):
        
         return generalInfo
 
+
+    def metadata(self):
+        #print(EasyID3.valid_keys.keys())
+        #print(dict(self.file.tags))
+        return dict(self.file.tags)
+
+
+    def editTag(self, name, value):
+        valueList = [x.strip() for x in value.split(',')]
+        self.file[name] = valueList
+        self.file.save()
+
+
     def retrieveImages(self):
         imgList = []
         for image in self.id3file.getall("APIC"):
             imgList.append(AlbumArt(image))
         return imgList
 
-    def addLocalImage(self, image, desc, type):
-        data = open(image, 'rb').read()
-        self.id3file.add(APIC(3, 'image/jpeg', type, desc, data))
+
+    def addLocalImage(self, desc, type, data, format):
+        self.id3file.add(APIC(3, 'image/' + str(format), type, desc, data))
         self.id3file.save()
 
-    def addOnlineImage(self, url, desc, type):
-        response = requests.get(url)
-        data = response.content
-        self.id3file.add(APIC(3, 'image/jpeg', type, desc, data))
+
+    def addOnlineImage(self, desc, type, data, format):
+        self.id3file.add(APIC(3, 'image/' + str(format), type, desc, data))
         self.id3file.save()
+
 
     def changeImageType(self, type, hash):
-        for image in self.id3file.getall("APIC"):
-            if image.HashKey == hash:
-                image.type = type
+        image = self.id3file.getall(hash)
+        image[0].type = type
         self.id3file.save()
+
+
+    def changeImageDesc(self, desc, hash):
+        image = self.id3file.getall(hash)
+        image[0].desc = desc
+        self.id3file.save()
+
 
     def deleteImages(self, hash):
         self.id3file.delall(hash)
         self.id3file.save()
 
-    def metadata(self):
-        return dict(self.file.tags)
+
+    def editTag(self, name, value):
+        valueList = [x.strip() for x in value.split(',')]
+        self.file[name] = valueList
+        self.file.save()
+
+
+    def checkImageUnique(self, desc):
+        for image in self.id3file.getall("APIC"):
+            if image.desc == desc:
+                return False
+        return True
+               
+
 
 
 

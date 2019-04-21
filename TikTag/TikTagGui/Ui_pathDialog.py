@@ -12,7 +12,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(400, 180)
+        Dialog.resize(400, 175)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(Dialog.sizePolicy().hasHeightForWidth())
+        Dialog.setSizePolicy(sizePolicy)
+        Dialog.setMinimumSize(QtCore.QSize(400, 175))
+        Dialog.setMaximumSize(QtCore.QSize(400, 175))
         Dialog.setModal(True)
         self.formLayout = QtWidgets.QFormLayout(Dialog)
         self.formLayout.setContentsMargins(-1, 15, -1, -1)
@@ -33,12 +40,6 @@ class Ui_Dialog(object):
         self.imgTypeComboBox = QtWidgets.QComboBox(Dialog)
         self.imgTypeComboBox.setObjectName("imgTypeComboBox")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.imgTypeComboBox)
-        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setMinimumSize(QtCore.QSize(0, 40))
-        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName("buttonBox")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.SpanningRole, self.buttonBox)
         self.widget = QtWidgets.QWidget(Dialog)
         self.widget.setObjectName("widget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
@@ -51,6 +52,12 @@ class Ui_Dialog(object):
         self.openButton.setObjectName("openButton")
         self.horizontalLayout.addWidget(self.openButton)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.widget)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox.setMinimumSize(QtCore.QSize(0, 30))
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.buttonBox)
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -62,7 +69,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Open Image"))
         self.pathLabel.setText(_translate("Dialog", "Path:"))
         self.descLabel.setText(_translate("Dialog", "Description:"))
         self.imgTypeLabel.setText(_translate("Dialog", "Type:"))

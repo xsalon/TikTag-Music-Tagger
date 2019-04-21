@@ -4,11 +4,11 @@ from PyQt5.QtCore import QDir
 from TikTagCtrl.Tagger import Tagger
 
 class MyFileSystemModel(QFileSystemModel):
-    def __init__(self, path, parent=None):
+    def __init__(self, headers, parent=None):
         super(MyFileSystemModel, self).__init__(parent)
-        self.setRootPath(path)
         self.setFilter(QDir.NoDotAndDotDot | QDir.Files | QDir.AllDirs)
-        
+        self.headers = headers
+
         filterFormatsList = []
         for format in Tagger.fileFormats:
             filterFormatsList.append("*." + format)
@@ -20,10 +20,9 @@ class MyFileSystemModel(QFileSystemModel):
         return super(MyFileSystemModel, self).columnCount() + 1
 
     def headerData(self, section, orientation, role = QtCore.Qt.DisplayRole): 
-        headerList = ["Name", "Size", "Type", "Modified", "Status"]
-        for i in range(5):
+        for i in range(len(self.headers)):
             if (section == i and orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole):
-                return headerList[i]
+                return self.headers[i]
         return super().headerData(section, orientation, role)
 
     def data(self, index, role):

@@ -25,6 +25,9 @@
     <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TikTagCtrl\TaggerError.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TikTagCtrl\MP3tag.py" />
     <Compile Include="TikTagCtrl\Tagger.py">
       <SubType>Code</SubType>
@@ -33,6 +36,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagGui\Ui_pathDialog.py" />
+    <Compile Include="TikTagGui\Ui_tagFileDialog.py" />
     <Compile Include="TikTagGui\Ui_urlDialog.py" />
     <Compile Include="TikTagGui\__init__.py">
       <SubType>Code</SubType>

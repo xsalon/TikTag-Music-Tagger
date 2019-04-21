@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>990</width>
-    <height>773</height>
+    <width>960</width>
+    <height>763</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,6 +47,15 @@
          <width>300</width>
          <height>300</height>
         </size>
+       </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::DragDrop</enum>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
        <attribute name="headerDefaultSectionSize">
         <number>200</number>
@@ -135,6 +144,9 @@
               <property name="scaledContents">
                <bool>true</bool>
               </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
              </widget>
             </item>
             <item row="0" column="1">
@@ -186,7 +198,7 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <widget class="QTableView" name="tableView">
+             <widget class="QTableWidget" name="tableWidget">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -201,6 +213,12 @@
               </attribute>
               <attribute name="verticalHeaderVisible">
                <bool>false</bool>
+              </attribute>
+              <attribute name="verticalHeaderDefaultSectionSize">
+               <number>35</number>
+              </attribute>
+              <attribute name="verticalHeaderMinimumSectionSize">
+               <number>25</number>
               </attribute>
              </widget>
             </item>
@@ -252,6 +270,9 @@
            <property name="scaledContents">
             <bool>true</bool>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
           </widget>
          </item>
          <item>
@@ -272,7 +293,7 @@
             <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="selectionMode">
-            <enum>QAbstractItemView::MultiSelection</enum>
+            <enum>QAbstractItemView::ExtendedSelection</enum>
            </property>
            <property name="iconSize">
             <size>
@@ -298,36 +319,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>990</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionExit"/>
-   </widget>
-   <widget class="QMenu" name="menuTools">
-    <property name="title">
-     <string>Tools</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menuHelp">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <addaction name="actionAbout"/>
-   </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuTools"/>
-   <addaction name="menuHelp"/>
-  </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
@@ -340,6 +331,68 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionSelectFolder"/>
+   <addaction name="actionDelete"/>
+   <addaction name="actionCreateFolder"/>
+   <addaction name="actionSetRootDir"/>
+   <addaction name="actionLevelUp"/>
+   <addaction name="actionRefresh"/>
+   <addaction name="actionTagToFile"/>
+   <addaction name="actionFileToTag"/>
+   <addaction name="actionDeleteTag"/>
+   <addaction name="actionRevertFile"/>
+   <addaction name="actionFolderByTag"/>
+   <addaction name="actionGetOnlineTags"/>
+   <addaction name="actionPutTagsOnline"/>
+   <addaction name="actionSpectogram"/>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>960</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionSelectFolder"/>
+    <addaction name="actionCreateFolder"/>
+    <addaction name="actionRefresh"/>
+    <addaction name="actionDelete"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionTagToFile"/>
+    <addaction name="actionFileToTag"/>
+    <addaction name="actionFolderByTag"/>
+    <addaction name="actionRevertFile"/>
+    <addaction name="actionDeleteTag"/>
+    <addaction name="actionSpectogram"/>
+    <addaction name="actionSettings"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <widget class="QMenu" name="menuOnline">
+    <property name="title">
+     <string>Online</string>
+    </property>
+    <addaction name="actionGetOnlineTags"/>
+    <addaction name="actionPutTagsOnline"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuOnline"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionSelectFolder">
    <property name="icon">
@@ -350,14 +403,84 @@
     <string>SelectFolder</string>
    </property>
   </action>
-  <action name="actionExit">
+  <action name="actionTagToFile">
    <property name="text">
-    <string>Exit</string>
+    <string>TagToFile</string>
+   </property>
+  </action>
+  <action name="actionFileToTag">
+   <property name="text">
+    <string>FileToTag</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="actionDeleteTag">
+   <property name="text">
+    <string>DeleteTag</string>
+   </property>
+  </action>
+  <action name="actionRevertFile">
+   <property name="text">
+    <string>RevertFile</string>
+   </property>
+  </action>
+  <action name="actionFolderByTag">
+   <property name="text">
+    <string>FolderByTag</string>
+   </property>
+  </action>
+  <action name="actionGetOnlineTags">
+   <property name="text">
+    <string>GetOnlineTags</string>
+   </property>
+  </action>
+  <action name="actionCreateFolder">
+   <property name="text">
+    <string>CreateFolder</string>
+   </property>
+  </action>
+  <action name="actionLevelUp">
+   <property name="text">
+    <string>LevelUp</string>
+   </property>
+  </action>
+  <action name="actionPutTagsOnline">
+   <property name="text">
+    <string>PutTagsOnline</string>
+   </property>
+  </action>
+  <action name="actionSpectogram">
+   <property name="text">
+    <string>Spectogram</string>
+   </property>
+  </action>
+  <action name="actionSetRootDir">
+   <property name="text">
+    <string>SetRootDir</string>
+   </property>
+  </action>
+  <action name="actionRefresh">
+   <property name="text">
+    <string>Refresh</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>
