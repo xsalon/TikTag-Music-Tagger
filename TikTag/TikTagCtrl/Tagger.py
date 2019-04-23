@@ -84,7 +84,7 @@ class Tagger(object):
             if fileExtension == "mp3":
                 file = MP3tag(path)
         except MutagenError:
-            raise TaggerError("File cannot be modiefied!")
+            raise TaggerError("Opening file failed!", path)
 
         return file
 
@@ -94,15 +94,30 @@ class Tagger(object):
         file = cls.openFile(path)
         return file.metadata()
 
+
     @classmethod
     def fetchGeneralInfo(cls, path):
         file = cls.openFile(path)
         return file.generalInfo()
 
+
     @classmethod
     def editTag(cls, name, value, path):
-        file = cls.openFile(path)
-        file.editTag(name, value)
+        try:
+            file = cls.openFile(path)
+            file.editTag(name, value)
+        except MutagenError:
+            raise TaggerError("Tag in file cannot be edited!", path)
+
+
+    @classmethod
+    def putTag(cls, name, value, path):
+        try:
+            file = cls.openFile(path)
+            file.putTag(name, value)
+        except MutagenError:
+            raise TaggerError("Tag in file cannot be changed!", path)
+ 
     
     @classmethod
     def retrieveCoverImage(cls, path):
@@ -175,19 +190,39 @@ class Tagger(object):
 
     @classmethod
     def changeImageType(cls, type, hash, path):
-        file = cls.openFile(path)
-        file.changeImageType(type, hash)
+        try:
+            file = cls.openFile(path)
+            file.changeImageType(type, hash)
+        except MutagenError:
+            raise TaggerError("Image type cannot be changed!", path)
+
 
     @classmethod
     def changeImageDesc(cls, desc, hash, path):
-        file = cls.openFile(path)
-        file.changeImageDesc(desc, hash)
+        try:
+            file = cls.openFile(path)
+            file.changeImageDesc(desc, hash)
+        except MutagenError:
+            raise TaggerError("Image description cannot be changed!", path)
 
 
     @classmethod
     def deleteImages(cls, hash, path):
-        file = cls.openFile(path)
-        file.deleteImages(hash)
+        try:
+            file = cls.openFile(path)
+            file.deleteImages(hash)
+        except MutagenError:
+            raise TaggerError("Image deletion cannot be done!", path)
+
+
+    @classmethod
+    def deleteTag(cls, path):
+        try:
+            file = cls.openFile(path)
+            file.deleteTag()
+        except MutagenError:
+            raise TaggerError("Whole tag cannot be deleted!", path)
+
 
     @classmethod
     def checkImageUnique(cls, desc, path):

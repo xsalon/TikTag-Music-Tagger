@@ -12,6 +12,7 @@ import shutil
 import enum
 import sys
 import os
+from pathlib import Path
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -19,6 +20,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.filePath = None
         self.supportedFormats = Tagger.fileFormats
+        self.generalInfo = {}
+        self.metadata = {}
 
         self.headerList = ["Name", "Size", "Type", "Modified", "Status"]
         self.fileModel = MyFileSystemModel(self.headerList)
@@ -48,9 +51,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSetRootDir.triggered.connect(self.setRootDirectory)
         self.actionCreateFolder.triggered.connect(self.newFolder)
         self.actionRefresh.triggered.connect(self.refreshFileModel)
-        self.actionTagToFile.triggered.connect(self.tagToFileName)
-        self.actionFileToTag.triggered.connect(self.fileToTagName)
-        self.actionFileToTag.triggered.connect(self.deleteTag)
+        self.actionTagToFile.triggered.connect(self.showTagToFileName)
+        self.actionFileToTag.triggered.connect(self.showFileToTagName)
+        self.actionDeleteTag.triggered.connect(self.deleteTag)
+        self.actionFolderByTag.triggered.connect(self.showFolderByTagName)
         
         self.actionLevelUp.setEnabled(False)
         self.actionDelete.setEnabled(False)
@@ -60,6 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionTagToFile.setEnabled(False)
         self.actionFileToTag.setEnabled(False)
         self.actionDeleteTag.setEnabled(False)
+        self.actionFolderByTag.setEnabled(False)
 
         self.albumArtLabel.mousePressEvent = self.pageUpImage
         self.bigAlbumArtLabel.mousePressEvent = self.pageDownImage
@@ -93,6 +98,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.initCtxTreeViewHeader()
         self.initCtxListWidget()
         self.initCtxTreeView()
+        self.initTagToFileName()
+        self.initFileToTagName()
+        self.initFolderByTagName()
         self.treeView.customContextMenuRequested.connect(self.showCtxTreeView)
         self.treeView.header().customContextMenuRequested.connect(self.showCtxTreeViewHeader)
         self.treeView.header().setSectionResizeMode(0, QHeaderView.ResizeToContents);
@@ -125,21 +133,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidget.setRowCount(0)
 
         try:
-            generalInfo = Tagger.fetchGeneralInfo(path)
+            self.generalInfo = Tagger.fetchGeneralInfo(path)
         except TaggerError as e:
             QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
             print(e.msg, e.src)
 
-        self.labelDuration.setText("Duration: " + generalInfo["Duration"])
-        self.labelSampleRate.setText("Sample Rate: " + generalInfo["Sample Rate"])
-        self.labelChannels.setText("Channels: " + generalInfo["Channels"])
-        self.labelBitrate.setText("Bitrate: " + generalInfo["Bitrate"]) 
-        self.labelCodec.setText("Codec: " + generalInfo["Codec"])
+        self.labelDuration.setText("Duration: " + self.generalInfo["Duration"])
+        self.labelSampleRate.setText("Sample Rate: " + self.generalInfo["Sample Rate"])
+        self.labelChannels.setText("Channels: " + self.generalInfo["Channels"])
+        self.labelBitrate.setText("Bitrate: " + self.generalInfo["Bitrate"]) 
+        self.labelCodec.setText("Codec: " + self.generalInfo["Codec"])
 
         headerTabLabels = ["Name", "Value"]
         
         try:
-            metadata = Tagger.fetchTags(path)
+            self.metadata = Tagger.fetchTags(path)
         except TaggerError as e:
             QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
             print(e.msg, e.src)
@@ -154,7 +162,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for tagview, tagname in Tagger.id3Keys.items():
             self.tableWidget.insertRow(rows)
             firstitem =  QTableWidgetItem(tagview)
-            valueTag = metadata.get(tagname, "")
+            valueTag = self.metadata.get(tagname, "")
             firstitem.setFlags(firstitem.flags() ^ Qt.ItemIsEditable)
             stringItem = ""
             for valueItem in valueTag:
@@ -497,6 +505,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionTagToFile.setEnabled(False)
         self.actionFileToTag.setEnabled(False)
         self.actionDeleteTag.setEnabled(False)
+        self.actionFolderByTag.setEnabled(False)
         
         indexes = self.treeView.selectionModel().selectedIndexes()
         indexesCount = len(indexes)
@@ -507,6 +516,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.actionTagToFile.setEnabled(True)
                 self.actionFileToTag.setEnabled(True)
                 self.actionDeleteTag.setEnabled(True)
+                self.actionFolderByTag.setEnabled(True)
         
         if len(indexes) == self.fileModel.columnCount() and self.fileModel.isDir(indexes[0]):
             self.actionSetRootDir.setEnabled(True)           
@@ -518,9 +528,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.treeView.hideColumn(pos)
 
+    def deleteTag(self):
+        try:
+             Tagger.deleteTag(self.filePath)
+        except TaggerError as e:
+             QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+             print(e.msg, e.src)
+        self.fetchTags()
 
-    def tagToFileName(self):
-        print("TtF")
+    #---------------------------------TAG TO FILE--------------------------------------------------
+                 
+    def initTagToFileName(self):
         self.tagFileDialog = QDialog()
         self.uiTagFileDialog = TagFileDialog()
         self.uiTagFileDialog.setupUi(self.tagFileDialog)
@@ -529,17 +547,231 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i in range(11):
             self.uiTagFileDialog.tagListComboBox.addItem(tagKeys[i])
 
-        self.uiTagFileDialog.previewButton.clicked.connect(self.chooseTagProp)
-        self.tagFileDialog.exec()
+        self.uiTagFileDialog.addTagButton.clicked.connect(self.chooseTagFileProp)
+        self.uiTagFileDialog.formatStringLineEdit.textChanged.connect(self.previewTagToFile)
 
-        
-    def chooseTagProp(self):
-        print(Tagger.id3Keys[self.uiTagFileDialog.tagListComboBox.currentText()])
    
+    def showTagToFileName(self):
+        self.uiTagFileDialog.formatStringPreview.clear()
+        try:
+            self.metadata = Tagger.fetchTags(self.filePath)
+        except TaggerError as e:
+            QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+            print(e.msg, e.src)
         
-    def fileToTagName(self):
-        print("FtT")
+        if self.tagFileDialog.exec() == QDialog.Accepted:
+            file = QFile(self.filePath)
+            if not file.rename(os.path.join(os.path.dirname(self.filePath), self.procTagToFileName())):
+                QMessageBox.warning(self, "Warning", "File with same name already exists!", QMessageBox.Ok)
+            
+   
+    def procTagToFileName(self):   
+        filename = os.path.basename(self.filePath)
+        name, extension = os.path.splitext(filename)
+        formatString = self.uiTagFileDialog.formatStringLineEdit.text()
+        if formatString == "":
+            return
+        finalString = ""
+
+        buffer = ""
+        buffering = False
+        for char in formatString:
+            if char == '#' and not buffering:
+                buffering = True
+            elif char == '#' and buffering:
+                buffering = False
+                if buffer in self.metadata.keys():
+                    for item in self.metadata[buffer]:
+                        finalString += item
+                        finalString += ', '
+                    finalString = finalString[:-2]
+                buffer = ""
+            elif buffering:
+                buffer += char
+            elif not buffering:
+                finalString += char
+        return finalString + extension
 
 
-    def deleteTag(self):
-        print("del tag")
+    def previewTagToFile(self):
+        self.uiTagFileDialog.formatStringPreview.setText(self.procTagToFileName())
+
+
+    def chooseTagFileProp(self):
+        temp = self.uiTagFileDialog.formatStringLineEdit.text()
+        temp += ('#' + Tagger.id3Keys[self.uiTagFileDialog.tagListComboBox.currentText()] + '#')
+        self.uiTagFileDialog.formatStringLineEdit.setText(temp)
+
+    #---------------------------------FILE TO TAG--------------------------------------------------
+
+    def initFileToTagName(self):
+        self.fileTagDialog = QDialog()
+        self.uiFileTagDialog = TagFileDialog()
+        self.uiFileTagDialog.setupUi(self.fileTagDialog)
+        self.fileTagDialog.setWindowTitle("File - Tag")
+        self.uiFileTagDialog.formatStringPreview.setWordWrap(True)
+
+        tagKeys = list(Tagger.id3Keys.keys())
+        for i in range(11):
+            self.uiFileTagDialog.tagListComboBox.addItem(tagKeys[i])
+
+        self.uiFileTagDialog.addTagButton.clicked.connect(self.chooseFileTagProp)
+        self.uiFileTagDialog.formatStringLineEdit.textChanged.connect(self.previewFileToTag)
+
+
+    def procFileToTagName(self):   
+        filename = os.path.basename(self.filePath)
+        name, extension = os.path.splitext(filename)
+        formatString = self.uiFileTagDialog.formatStringLineEdit.text()
+        finalDict = {}
+        if formatString == "":
+            return finalDict
+
+        bufferKey = ""
+        bufferSep = ""
+        bufferList = []
+        buffering = False
+        for char in formatString:
+            if char == '#' and not buffering:
+                buffering = True
+                if bufferSep:
+                    bufferList.append(bufferSep)
+                bufferSep = ""
+            elif char == '#' and buffering:
+                buffering = False
+                if bufferKey:
+                    bufferList.append('#' + bufferKey)
+                bufferKey = ""
+            elif buffering:
+                bufferKey += char
+            elif not buffering:
+                bufferSep += char
+
+        if bufferSep:
+            bufferList.append(bufferSep)
+
+        key = ""
+        for i in range(len(bufferList)):
+            listWord = bufferList[i]
+            if listWord[0] == '#':
+                key = listWord[1:]
+                if i == len(bufferList)-1:
+                    if key in finalDict:
+                        finalDict[key].append(name)
+                    else:
+                        finalDict[key] = [name]
+            else:
+                splitted = name.split(listWord, 1)
+                value = splitted[0]
+                
+                if len(splitted) > 1:
+                    name = splitted[1]
+
+                if key and value:
+                    if key in finalDict:
+                        finalDict[key].append(value)
+                    else:
+                        finalDict[key] = [value]
+
+        return finalDict
+                
+    
+    def showFileToTagName(self):
+        self.uiFileTagDialog.formatStringPreview.clear()
+        if self.fileTagDialog.exec() == QDialog.Accepted:
+            for key, value in self.procFileToTagName().items():
+                try:
+                    Tagger.putTag(key, value, self.filePath)
+                except TaggerError as e:
+                    QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                    print(e.msg, e.src)
+            self.fetchTags()
+
+        
+    def previewFileToTag(self):
+        previewString = ""
+        for key, value in self.procFileToTagName().items():
+            previewString += key + " = " + ",".join(value) + "\n"
+        self.uiFileTagDialog.formatStringPreview.setText(previewString)
+
+              
+    def chooseFileTagProp(self):
+        temp = self.uiFileTagDialog.formatStringLineEdit.text()
+        temp += ('#' + Tagger.id3Keys[self.uiFileTagDialog.tagListComboBox.currentText()] + '#')
+        self.uiFileTagDialog.formatStringLineEdit.setText(temp)
+
+    #---------------------------------FOLDER BY TAG--------------------------------------------------
+
+    def initFolderByTagName(self):
+        self.folderByTagDialog = QDialog()
+        self.uiFolderByTagDialog = TagFileDialog()
+        self.uiFolderByTagDialog.setupUi(self.folderByTagDialog)
+        self.folderByTagDialog.setWindowTitle("Tag - Folder")
+        self.uiFolderByTagDialog.checkBoxRemove = QCheckBox(self.uiFolderByTagDialog.formatGroupBox)
+        self.uiFolderByTagDialog.checkBoxRemove.setObjectName("checkBoxRemove")
+        self.uiFolderByTagDialog.gridLayout_2.addWidget(self.uiFolderByTagDialog.checkBoxRemove, 4, 0, 1, 1)
+        self.uiFolderByTagDialog.gridLayout.addWidget(self.uiFolderByTagDialog.formatGroupBox, 0, 0, 1, 1)
+        _translate = QCoreApplication.translate
+        self.uiFolderByTagDialog.checkBoxRemove.setText(_translate("Dialog", "Remove original files"))
+
+        tagKeys = list(Tagger.id3Keys.keys())
+        for i in range(11):
+            self.uiFolderByTagDialog.tagListComboBox.addItem(tagKeys[i])
+
+        self.uiFolderByTagDialog.addTagButton.clicked.connect(self.chooseFolderByTagProp)
+        self.uiFolderByTagDialog.formatStringLineEdit.textChanged.connect(self.previewFolderByTag)
+
+
+    def procFolderByTagName(self):  
+        formatString = self.uiFolderByTagDialog.formatStringLineEdit.text()
+        if formatString == "":
+            return
+        finalString = ""
+
+        buffer = ""
+        buffering = False
+        for char in formatString:
+            if char == '#' and not buffering:
+                buffering = True
+            elif char == '#' and buffering:
+                buffering = False
+                if buffer in self.metadata.keys():
+                    for item in self.metadata[buffer]:
+                        finalString += item
+                        finalString += ', '
+                    finalString = finalString[:-2]
+                buffer = ""
+            elif buffering:
+                buffer += char
+            elif not buffering:
+                finalString += char
+        return finalString
+                
+    
+    def showFolderByTagName(self):
+        if self.folderByTagDialog.exec() == QDialog.Accepted:
+            path = self.fileModel.filePath(self.treeView.rootIndex())
+            fileName = os.path.basename(self.filePath)
+            subDirs = [o for o in os.listdir(path) if os.path.isdir(os.path.join(path,o))]
+            dirName = self.procFolderByTagName()
+            if dirName in subDirs:
+                if QFile.copy(self.filePath, os.path.join(path, dirName, fileName)):
+                    if self.uiFolderByTagDialog.checkBoxRemove.isChecked():
+                        if QFile.remove(self.filePath):
+                            pass
+            else:
+                self.fileModel.mkdir(self.treeView.rootIndex(), dirName)
+                if QFile.copy(self.filePath, os.path.join(path, dirName, fileName)):
+                    if self.uiFolderByTagDialog.checkBoxRemove.isChecked():
+                        if QFile.remove(self.filePath):
+                            pass #osetrit
+
+        
+    def previewFolderByTag(self):
+        self.uiFolderByTagDialog.formatStringPreview.setText(self.procFolderByTagName())
+
+              
+    def chooseFolderByTagProp(self):
+        temp = self.uiFolderByTagDialog.formatStringLineEdit.text()
+        temp += ('#' + Tagger.id3Keys[self.uiFolderByTagDialog.tagListComboBox.currentText()] + '#')
+        self.uiFolderByTagDialog.formatStringLineEdit.setText(temp)

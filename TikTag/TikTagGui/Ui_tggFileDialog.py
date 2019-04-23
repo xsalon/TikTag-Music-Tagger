@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'tagFileDialog.ui'
+# Form implementation generated from reading ui file 'tggFileDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.1
 #
@@ -64,6 +64,9 @@ class Ui_Dialog(object):
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout_2.addWidget(self.buttonBox, 4, 1, 1, 1)
+        self.checkBoxRemove = QtWidgets.QCheckBox(self.formatGroupBox)
+        self.checkBoxRemove.setObjectName("checkBoxRemove")
+        self.gridLayout_2.addWidget(self.checkBoxRemove, 4, 0, 1, 1)
         self.gridLayout.addWidget(self.formatGroupBox, 0, 0, 1, 1)
 
         self.retranslateUi(Dialog)
@@ -76,6 +79,7 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Dialog", "Tag - File"))
         self.formatGroupBox.setTitle(_translate("Dialog", "Format options"))
         self.addTagButton.setText(_translate("Dialog", "Add"))
+        self.checkBoxRemove.setText(_translate("Dialog", "Remove original files"))
 
 
 

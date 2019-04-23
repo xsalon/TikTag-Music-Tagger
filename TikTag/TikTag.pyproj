@@ -22,6 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="images_rc.py" />
     <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
@@ -50,20 +51,17 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagGui\Ui_MainWindow.py" />
-    <Compile Include="TikTagCtrl\Taggerz.py">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TikTagCtrl\" />
     <Folder Include="TikTagGui\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="TikTagGui\untitled.ui" />
-    <Content Include="TikTagGui\zmena.bat" />
+    <Folder Include="TikTagGui\icons\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.6-32" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TikTagGui\icons\open-folder.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -113,6 +113,16 @@ class MP3tag(object):
         self.file.save()
 
 
+    def putTag(self, name, value):
+        self.file[name] = value
+        self.file.save()
+
+
+    def deleteTag(self):
+        self.file.delete()
+        self.file.save()
+
+
     def checkImageUnique(self, desc):
         for image in self.id3file.getall("APIC"):
             if image.desc == desc:
