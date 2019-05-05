@@ -26,6 +26,9 @@
     <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TikTagCtrl\FLACtag.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TikTagCtrl\TaggerError.py">
       <SubType>Code</SubType>
     </Compile>
@@ -37,9 +40,29 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagGui\Ui_pathDialog.py" />
+    <Compile Include="TikTagGui\Ui_sourcesDialog.py" />
     <Compile Include="TikTagGui\Ui_tagFileDialog.py" />
     <Compile Include="TikTagGui\Ui_urlDialog.py" />
     <Compile Include="TikTagGui\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagServices\GracenoteDB.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagServices\libs\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagServices\libs\pygn.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagServices\ServiceError.py" />
+    <Compile Include="TikTagServices\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagServices\DiscogsDB.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TikTagServices\MusicBrainzDB.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py">
@@ -53,15 +76,18 @@
     <Compile Include="TikTagGui\Ui_MainWindow.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="TikTagServices\" />
     <Folder Include="TikTagCtrl\" />
     <Folder Include="TikTagGui\" />
     <Folder Include="TikTagGui\icons\" />
+    <Folder Include="TikTagServices\libs\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.6-32" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TikTagGui\icons\open-folder.png" />
+    <Content Include="TikTagGui\images.qrc" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

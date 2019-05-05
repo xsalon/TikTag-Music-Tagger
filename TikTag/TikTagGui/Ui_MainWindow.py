@@ -219,6 +219,8 @@ class Ui_MainWindow(object):
         self.actionExit.setObjectName("actionExit")
         self.actionSettings = QtWidgets.QAction(MainWindow)
         self.actionSettings.setObjectName("actionSettings")
+        self.actionSetSource = QtWidgets.QAction(MainWindow)
+        self.actionSetSource.setObjectName("actionSetSource")
         self.toolBar.addAction(self.actionSelectFolder)
         self.toolBar.addAction(self.actionDelete)
         self.toolBar.addAction(self.actionCreateFolder)
@@ -232,6 +234,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionFolderByTag)
         self.toolBar.addAction(self.actionGetOnlineTags)
         self.toolBar.addAction(self.actionPutTagsOnline)
+        self.toolBar.addAction(self.actionSetSource)
         self.toolBar.addAction(self.actionSpectogram)
         self.menuFile.addAction(self.actionSelectFolder)
         self.menuFile.addAction(self.actionCreateFolder)
@@ -289,6 +292,7 @@ class Ui_MainWindow(object):
         self.actionAbout.setText(_translate("MainWindow", "About"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionSettings.setText(_translate("MainWindow", "Settings"))
+        self.actionSetSource.setText(_translate("MainWindow", "SetSource"))
 
 
 import images_rc

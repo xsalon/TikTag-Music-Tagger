@@ -343,6 +343,7 @@
    <addaction name="actionFolderByTag"/>
    <addaction name="actionGetOnlineTags"/>
    <addaction name="actionPutTagsOnline"/>
+   <addaction name="actionSetSource"/>
    <addaction name="actionSpectogram"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -481,6 +482,11 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionSetSource">
+   <property name="text">
+    <string>SetSource</string>
    </property>
   </action>
  </widget>

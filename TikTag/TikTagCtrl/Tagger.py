@@ -5,74 +5,36 @@ import requests
 import imghdr
 from mutagen import MutagenError
 from TikTagCtrl.MP3tag import MP3tag
+from TikTagCtrl.FLACtag import FLACtag
 from TikTagCtrl.TaggerError import *
 
 class Tagger(object):
-    fileFormats = ["mp3"]
+    fileFormats = ["mp3", "flac"]
     imageFormats = ["jpg", "png", "jpeg"]
    
     imageTypes = ["Other", "File Icon", "Other File Icon", "Front Cover", "Back Cover", "Leaflet Page", "Media", 
                   "Lead Artist", "Artist/Performer", "Conductor", "Band", "Composer", "Lyricist/Text Writer", "Recording Location", "During Recording",
                   "During Performance", "Screen Capture", "Fish", "Illustration", "Band/Artist Logo", "Publisher/Studio Logo"]
 
-    id3Keys = {
-               'Title' : 'title',
-               'Artist' : 'artist',
-               'Album' : 'album',
-               'Album Artist' : 'albumartist', 
-               'Date' : 'date',
-               'Original Date' : 'originaldate', 
-               'Genre' : 'genre',
-               'Composer' : 'composer', 
-               'Track Number' : 'tracknumber', 
-               'Disc Number' : 'discnumber',
-               'Catalog Number' : 'catalognumber',
-               'BPM' : 'bpm',
-               'Encoded by' : 'encodedby',
-               'Compilation' : 'compilation', 
-               'Organization' : 'organization',
-               'ISRC' : 'isrc',
-               'Composer' : 'composer', 
-               'Copyright' : 'copyright',  
-               'Lyricist' : 'lyricist', 
-               'Lenght' : 'length', 
-               'Media' : 'media', 
-               'Mood' : 'mood', 
-               'Version' : 'version', 
-               'Conductor' : 'conductor', 
-               'Arranger' : 'arranger', 
-               'Author' : 'author', 
-               'Album Artist Sort' : 'albumartistsort', 
-               'Album Sort' : 'albumsort', 
-               'Composer Sort' : 'composersort', 
-               'Artist Sort' : 'artistsort', 
-               'Title Sort' : 'titlesort', 
-               'ASIN' : 'asin', 
-               'Performer' : 'performer', 
-               'Barcode' : 'barcode', 
-               'Disc Subtitle' : 'discsubtitle', 
-               'Language' : 'language', 
-               'Performer*' : 'performer:*', 
-               'Track ID (MB)' : 'musicbrainz_trackid', 
-               'Website' : 'website', 
-               'Replay Gain' : 'replaygain_*_gain', 
-               'Replay Gain Peak' : 'replaygain_*_peak', 
-               'Artist ID (MB)' : 'musicbrainz_artistid', 
-               'Album ID (MB)' : 'musicbrainz_albumid', 
-               'Album Artist ID (MB)' : 'musicbrainz_albumartistid', 
-               'TRMID (MB)' : 'musicbrainz_trmid', 
-               'MusicIP PUID' : 'musicip_puid', 
-               'MusicIP Fingerprint' : 'musicip_fingerprint', 
-               'Album Status (MB)' : 'musicbrainz_albumstatus', 
-               'Album Type (MB)' : 'musicbrainz_albumtype', 
-               'Release Country' : 'releasecountry', 
-               'Disc ID (MB)' : 'musicbrainz_discid',  
-               'Release Track ID (MB)' : 'musicbrainz_releasetrackid', 
-               'Release Group ID (MB)' : 'musicbrainz_releasegroupid',         
-               'Work ID (MB)' : 'musicbrainz_workid', 
-               'AcoustID Fingerprint' : 'acoustid_fingerprint', 
-               'AcoustID' : 'acoustid_id'  
-        }
+    generalKeys = [
+               'Title',
+               'Artist',
+               'Album',
+               'Album Artist', 
+               'Date',
+               'Original Date', 
+               'Genre',
+               'Composer', 
+               'Track Number', 
+               'Disc Number',
+               'Catalog Number',
+               'BPM',
+               'Initial Key',
+               'ISRC',
+               'Composer', 
+               'Lyricist', 
+               'Lenght'
+        ]
 
     @classmethod
     def openFile(cls, path):
@@ -83,10 +45,18 @@ class Tagger(object):
         try:
             if fileExtension == "mp3":
                 file = MP3tag(path)
+            elif fileExtension == "flac":
+                file = FLACtag(path)
         except MutagenError:
             raise TaggerError("Opening file failed!", path)
 
         return file
+
+
+    @classmethod
+    def getKeys(cls, path):
+        file = cls.openFile(path)
+        return file.tagKeys
 
         
     @classmethod
@@ -163,27 +133,30 @@ class Tagger(object):
         if mode == "path":
             try:
                 data = open(src, 'rb').read()
+                format = imghdr.what("image", data)
+                if not format or format not in cls.imageFormats:
+                    raise TaggerError("Unsupported image file format!", format)
+                else:
+                    file.addImage(desc, type, data, format)
             except IOError:
                 raise TaggerError("Cannot open image file!", src)
-                
-            format = imghdr.what("image", data)
-            if not format or format not in cls.imageFormats:
-                raise TaggerError("Unsupported image file format!", format)
-            else:
-                file.addLocalImage(desc, type, data, format)
+            except ModuleTaggerError as e:
+                raise TaggerError(e.msg, path)
         
         elif mode == "url":
             try:
                 response = requests.get(src)
+                data = response.content
+                format = imghdr.what("image", data)
+                if not format or format not in cls.imageFormats:
+                    raise TaggerError("Unsupported image file format!", format)
+                else:
+                    file.addImage(desc, type, data, format)
+            except ModuleTaggerError as e:
+                raise TaggerError(e.msg, path)
             except Exception:
-                raise TaggerError("Cannot load image from url!", src)   
-            data = response.content
+                raise TaggerError("Cannot load image from url!", src)             
 
-            format = imghdr.what("image", data)
-            if not format or format not in cls.imageFormats:
-                raise TaggerError("Unsupported image file format!", format)
-            else:
-                file.addOnlineImage(desc, type, data, format)
         else:
             raise TaggerError("Wrong mode selected", "")
 
@@ -207,12 +180,21 @@ class Tagger(object):
 
 
     @classmethod
-    def deleteImages(cls, hash, path):
+    def deleteImage(cls, hash, path):
         try:
             file = cls.openFile(path)
-            file.deleteImages(hash)
+            file.deleteImage(hash)
         except MutagenError:
             raise TaggerError("Image deletion cannot be done!", path)
+
+
+    @classmethod
+    def deleteAllImages(cls, path):
+        try:
+            file = cls.openFile(path)
+            file.deleteAllImages()
+        except MutagenError:
+            raise TaggerError("Images deletion cannot be done!", path)
 
 
     @classmethod
@@ -228,9 +210,9 @@ class Tagger(object):
     def checkImageUnique(cls, desc, path):
         file = cls.openFile(path)
         return file.checkImageUnique(desc)
+
     
     @staticmethod
     def checkStatus(path):
+        #todo
         pass
-
-

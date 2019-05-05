@@ -15,15 +15,18 @@ class MyFileSystemModel(QFileSystemModel):
         
         self.setNameFilters(filterFormatsList)
         self.setNameFilterDisables(0)
+
     
     def columnCount(self, parent = QtCore.QModelIndex()):
         return super(MyFileSystemModel, self).columnCount() + 1
+
 
     def headerData(self, section, orientation, role = QtCore.Qt.DisplayRole): 
         for i in range(len(self.headers)):
             if (section == i and orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole):
                 return self.headers[i]
         return super().headerData(section, orientation, role)
+
 
     def data(self, index, role):
         if index.column() == self.columnCount() - 1:
