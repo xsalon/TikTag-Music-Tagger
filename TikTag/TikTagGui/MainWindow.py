@@ -6,8 +6,8 @@ from TikTagGui.Ui_MainWindow import Ui_MainWindow
 from TikTagGui.Ui_urlDialog import Ui_Dialog as UrlDialog
 from TikTagGui.Ui_pathDialog import Ui_Dialog as PathDialog
 from TikTagGui.Ui_tagFileDialog import Ui_Dialog as TagFileDialog
-from TikTagGui.Ui_sourcesDialog import Ui_Dialog as SourcesDialog
-from TikTagServices.DiscogsDB import DiscogsDB
+from TikTagGui.Ui_settingsDialog import Ui_Dialog as SettingsDialog
+from TikTagServices.OnlineServices import OnlineServices
 from TikTagCtrl.Tagger import Tagger
 from TikTagCtrl.TaggerError import *
 from TikTagServices.ServiceError import *
@@ -21,6 +21,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
+        self.settings = QSettings("FIT VUT", "TikTag");
         self.filePath = None
         self.supportedFormats = Tagger.fileFormats
         self.generalInfo = {}
@@ -28,11 +29,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.metadataCache = []
         self.indexCache = 0
         self.errFound = False
-
-        self.clientDiscogs = None
-        self.clientMusicBrainz = None
-
-        self.initSetSources()
+        
+        self.initSettings()
+        self.onlineTagger = None
 
         self.headerList = ["Name", "Size", "Type", "Modified", "Status"]
         self.fileModel = MyFileSystemModel(self.headerList)
@@ -68,7 +67,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDeleteTag.triggered.connect(self.deleteTag)
         self.actionFolderByTag.triggered.connect(self.showFolderByTagName)
         self.actionRevertFile.triggered.connect(self.revertFile)
-        self.actionSetSource.triggered.connect(self.showSetSources)
+        self.actionSettings.triggered.connect(self.showSettings)
         self.actionGetOnlineTags.triggered.connect(self.getOnlineTags)
         
         self.actionLevelUp.setEnabled(False)
@@ -87,16 +86,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.tableWidget.itemChanged.connect(self.editTag)
 
+        if self.settings.value("MainWindow/lastDirPath"):
+            self.initWorkDirectory(self.settings.value("MainWindow/lastDirPath"))
+
   
     def selectFolderDialog(self):
         rootPath = QDir.rootPath()
         folder = str(QFileDialog.getExistingDirectory(None, "Select Directory", rootPath))
         
-        if not self.treeView.model():
-            if rootPath != folder:
+        if folder:
+            if not self.treeView.model():
                 self.initWorkDirectory(folder)
-        else:
-            if rootPath != folder:
+            else:
                 self.changeWorkDirectory(folder)
 
     
@@ -128,10 +129,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.treeView.hideColumn(i)
         self.treeView.showColumn(0)
 
+        self.settings.setValue("MainWindow/lastDirPath", folder)
+
 
     def changeWorkDirectory(self, folder):
         self.fileModel.setRootPath(folder)
         self.treeView.setRootIndex(self.fileModel.index(folder))
+        self.settings.setValue("MainWindow/lastDirPath", folder)
 
     
     def fetchTags(self):
@@ -607,12 +611,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                        path = self.fileModel.filePath(item)
                        metaItem = next((metaItem for metaItem in self.metadataCache if path in metaItem.keys()), False)
                        if metaItem:
-                           for key, value in metaItem[path].items():
-                               try:
-                                   Tagger.putTag(key, value, path)
-                               except TaggerError as e:
-                                   QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                                   print(e.msg, e.src)
+                           try:
+                                metadata = Tagger.fetchTags(path)
+                                print(str(metadata))
+                                print(str(metaItem))
+                                for key, value in metadata.items():
+                                    if not key in metaItem[path]:
+                                        Tagger.putTag(key, "", path)
+                                for key, value in metaItem[path].items():
+                                    if metaItem[path][key]:
+                                        Tagger.putTag(key, value, path)
+
+                           except TaggerError as e:
+                               QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                               print(e.msg, e.src)
         self.fetchTags()
 
 
@@ -662,7 +674,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 buffering = True
             elif char == '#' and buffering:
                 buffering = False
-                if buffer in metadata.keys():
+                if buffer in metadata:
                     for item in metadata[buffer]:
                         finalString += item
                         finalString += ', '
@@ -826,7 +838,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 buffering = True
             elif char == '#' and buffering:
                 buffering = False
-                if buffer in metadata.keys():
+                if buffer in metadata:
                     for item in metadata[buffer]:
                         finalString += item
                         finalString += ', '
@@ -871,46 +883,133 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uiFolderByTagDialog.formatStringLineEdit.setText(temp)
 
 
-    #---------------------------------SET SOURCES--------------------------------------------------    
+    #--------------------------------- SETTINGS --------------------------------------------------    
     
-    def initSetSources(self):
-        self.sourcesDialog = QDialog()
-        self.uiSourcesDialog = SourcesDialog()
-        self.uiSourcesDialog.setupUi(self.sourcesDialog)
+    def initSettings(self):
+        self.settingsDialog = QDialog()
+        self.uiSettingsDialog = SettingsDialog()
+        self.uiSettingsDialog.setupUi(self.settingsDialog)
 
-    def showSetSources(self):
-        if self.sourcesDialog.exec() == QDialog.Accepted:
-            pass
+        self.uiSettingsDialog.listWidget.itemClicked.connect(lambda item: item.setCheckState(Qt.Checked if item.checkState()==Qt.Unchecked else Qt.Unchecked))
+
+        if not self.settings.value("Settings/Online/ServicesList"):
+            self.settings.setValue("Settings/Online/ServicesList", OnlineServices.SERVICES)
+
+        if not self.settings.value("Settings/Online/Mode"):
+            self.settings.setValue("Settings/Online/Mode", "Complete")
+
+        for service in self.settings.value("Settings/Online/ServicesList"):
+            if not self.settings.value("Settings/Online/" + service):  
+                self.settings.setValue("Settings/Online/" + service, 2)
+
+
+
+    def showSettings(self):
+        if self.settings.value("Settings/Online/Mode") == "Complete":
+            self.uiSettingsDialog.radioButtonComplete.setChecked(True)
+            self.settings.setValue("Settings/Online/Mode", "Complete")
+        else:
+            self.uiSettingsDialog.radioButtonOverwrite.setChecked(True)
+            self.settings.setValue("Settings/Online/Mode", "Overwrite")
+   
+        self.uiSettingsDialog.listWidget.clear()
+        for service in self.settings.value("Settings/Online/ServicesList"):
+                newService = QListWidgetItem()
+                newService.setText(service)
+                newService.setIcon(QIcon(":/icons/" + service.lower() + ".png"))
+                newService.setFlags(newService.flags() ^ Qt.ItemIsUserCheckable)
+                if self.settings.value("Settings/Online/" + service) == 2:
+                    newService.setCheckState(Qt.Checked);
+                else:
+                    newService.setCheckState(Qt.Unchecked);
+                self.uiSettingsDialog.listWidget.addItem(newService)
+    
+        if self.settingsDialog.exec() == QDialog.Accepted:
+            self.settings.setValue("Settings/Online/ServicesList", [self.uiSettingsDialog.listWidget.item(i).text() for i in range(self.uiSettingsDialog.listWidget.count())])
+            for i in range(self.uiSettingsDialog.listWidget.count()):
+                if self.uiSettingsDialog.listWidget.item(i).checkState() == Qt.Checked:
+                    self.settings.setValue("Settings/Online/" + self.uiSettingsDialog.listWidget.item(i).text(), 2)
+                else:
+                    self.settings.setValue("Settings/Online/" + self.uiSettingsDialog.listWidget.item(i).text(), 1)
+        
+            if self.uiSettingsDialog.radioButtonComplete.isChecked():
+                self.settings.setValue("Settings/Online/Mode", "Complete")
+            else:
+                self.settings.setValue("Settings/Online/Mode", "Overwrite")
 
            
     #---------------------------------GET ONLINE TAGS--------------------------------------------------
     
+    def getServicesOrder(self):
+         return [self.settings.value("Settings/Online/ServicesList")[i] for i in range(len(self.settings.value("Settings/Online/ServicesList"))) 
+                    if self.settings.value("Settings/Online/" + self.settings.value("Settings/Online/ServicesList")[i]) == 2]
+
+
+    def initOnlineServices(self):
+         try:
+             self.onlineTagger.initServices(self.getServicesOrder())
+         except ServiceRequirement as r:
+             webbrowser.open(r.url)
+             code, res = QInputDialog.getText(self, "Authorization", "Code:")
+             if res:
+                 try:
+                     self.onlineTagger.initServices(self.getServicesOrder(), code)
+                 except ServiceError as e:
+                     QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                     print(e.msg)
+    
+    
     def getOnlineTags(self):
-        if not self.clientDiscogs:
-            self.clientDiscogs = DiscogsDB()
-            webbrowser.open(self.clientDiscogs.getAuthUrl())
-            code, res = QInputDialog.getText(self, "Authorization", "Code:")
-            if res:
-                try:
-                    self.clientDiscogs.authorization(code)
-                    self.clientDiscogs.identity()
-                except ServiceError as e:
-                    self.clientDiscogs = None
-                    QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                    print(e.msg)
-            else:
-                self.clientDiscogs = None
-        else:
-            for item in self.treeView.selectedIndexes():
-                if item.column() == 0:
-                    path = self.fileModel.filePath(item)
-                    
-                    try:
-                        metadata = Tagger.fetchTags(path)
-                        self.clientDiscogs.getByRecord(metadata)
-                    except TaggerError as e:
-                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                        print(e.msg, e.src)
-                    except ServiceError as e:
-                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                        print(e.msg)                    
+        tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
+        progressDialog = QProgressDialog("Downloading...", "Cancel", 0, tasksCount, self)
+        progressDialog.setModal(True)
+        progressDialog.setWindowTitle("Get Tags")
+
+        if not self.onlineTagger:            
+            self.onlineTagger = OnlineServices(self.getServicesOrder())
+            self.initOnlineServices()
+        elif not set(self.onlineTagger.services) == set(self.getServicesOrder()):
+            self.onlineTagger.services = self.getServicesOrder()
+            self.initOnlineServices()
+        elif not self.onlineTagger.servicesStatus():
+            self.onlineTagger.services = self.getServicesOrder()
+            self.initOnlineServices()
+        
+        if self.onlineTagger:
+            for i, item in enumerate(self.treeView.selectedIndexes()):
+               if item.column() == 0:
+                   progressDialog.setValue(i)
+
+                   if progressDialog.wasCanceled():
+                       break;
+
+                   path = self.fileModel.filePath(item)
+                   try:
+                       metadata = Tagger.fetchTags(path)
+                       result = self.onlineTagger.getTags(metadata)
+                   except TaggerError as e:
+                       QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                       print(e.msg, e.src)
+                   except ServiceError as e:
+                       QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                       print(e.msg)
+
+                   if self.settings.value("Settings/Online/Mode") == "Complete":
+                       for key, value in result.items():
+                           if not key in metadata or not metadata[key]:
+                               if not value == None:
+                                    try:
+                                        Tagger.putTag(key, value, path)
+                                    except TaggerError as e:
+                                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                        print(e.msg, e.src)
+                   else:
+                       for key, value in result.items():
+                          if not value == None:
+                                try:
+                                    Tagger.putTag(key, value, path)
+                                except TaggerError as e:
+                                    QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                    print(e.msg, e.src)
+            self.fetchTags()
+            progressDialog.setValue(tasksCount)

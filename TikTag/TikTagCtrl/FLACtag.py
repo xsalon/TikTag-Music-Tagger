@@ -67,6 +67,7 @@ class FLACtag(object):
                'Description' : 'description',
                'ISRC' : 'isrc',
                'Comment' : 'comment',
+               'Modified by' : 'modified',
                'Composer' : 'composer', 
                'Copyright' : 'copyright',  
                'Lyricist' : 'lyricist', 
@@ -183,7 +184,14 @@ class FLACtag(object):
 
 
     def putTag(self, name, value):
-        self.file[self.tagKeys[name]] = value
+        if type(value) is list:
+            value = [str(i) for i in value]
+        else:
+            value = str(value)
+        if name[0].isupper():
+            self.file[self.tagKeys[name]] = value
+        elif name in self.tagKeys.values():
+            self.file[name] = value
         self.file.save()
 
 

@@ -814,7 +814,6 @@ class _gnquery:
 		myradioid.text = radioID
 
 
- 
 		 
 
 def _getElemText(parentElem, elemName, elemAttribName=None, elemAttribValue=None):

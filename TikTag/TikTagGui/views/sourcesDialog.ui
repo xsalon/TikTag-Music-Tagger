@@ -49,9 +49,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxMusicBrainz">
+    <widget class="QCheckBox" name="checkBoxSpotify">
      <property name="text">
-      <string>MusicBrainz</string>
+      <string>Spotify</string>
      </property>
      <property name="checked">
       <bool>true</bool>

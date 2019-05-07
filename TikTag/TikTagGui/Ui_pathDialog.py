@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pathDialog.ui'
+# Form implementation generated from reading ui file 'views\pathDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.1
 #

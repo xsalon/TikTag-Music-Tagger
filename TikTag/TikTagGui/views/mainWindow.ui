@@ -324,11 +324,23 @@
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
+   <property name="iconSize">
+    <size>
+     <width>28</width>
+     <height>28</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea">
-    <enum>LeftToolBarArea</enum>
+    <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>false</bool>
+    <bool>true</bool>
    </attribute>
    <addaction name="actionSelectFolder"/>
    <addaction name="actionDelete"/>
@@ -336,15 +348,15 @@
    <addaction name="actionSetRootDir"/>
    <addaction name="actionLevelUp"/>
    <addaction name="actionRefresh"/>
-   <addaction name="actionTagToFile"/>
+   <addaction name="separator"/>
    <addaction name="actionFileToTag"/>
+   <addaction name="actionTagToFile"/>
+   <addaction name="actionFolderByTag"/>
    <addaction name="actionDeleteTag"/>
    <addaction name="actionRevertFile"/>
-   <addaction name="actionFolderByTag"/>
+   <addaction name="separator"/>
    <addaction name="actionGetOnlineTags"/>
-   <addaction name="actionPutTagsOnline"/>
-   <addaction name="actionSetSource"/>
-   <addaction name="actionSpectogram"/>
+   <addaction name="actionSettings"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -374,7 +386,6 @@
     <addaction name="actionFolderByTag"/>
     <addaction name="actionRevertFile"/>
     <addaction name="actionDeleteTag"/>
-    <addaction name="actionSpectogram"/>
     <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -388,7 +399,6 @@
      <string>Online</string>
     </property>
     <addaction name="actionGetOnlineTags"/>
-    <addaction name="actionPutTagsOnline"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuOnline"/>
@@ -401,70 +411,107 @@
      <normaloff>:/icons/open-folder.png</normaloff>:/icons/open-folder.png</iconset>
    </property>
    <property name="text">
-    <string>SelectFolder</string>
+    <string>Open Folder</string>
    </property>
   </action>
   <action name="actionTagToFile">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/tag-file.png</normaloff>:/icons/tag-file.png</iconset>
+   </property>
    <property name="text">
-    <string>TagToFile</string>
+    <string>Tag - File</string>
    </property>
   </action>
   <action name="actionFileToTag">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/file-tag.png</normaloff>:/icons/file-tag.png</iconset>
+   </property>
    <property name="text">
-    <string>FileToTag</string>
+    <string>File - Tag</string>
    </property>
   </action>
   <action name="actionDelete">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/delete.png</normaloff>:/icons/delete.png</iconset>
+   </property>
    <property name="text">
     <string>Delete</string>
    </property>
   </action>
   <action name="actionDeleteTag">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/delete-tag.png</normaloff>:/icons/delete-tag.png</iconset>
+   </property>
    <property name="text">
-    <string>DeleteTag</string>
+    <string>Delete Tag</string>
    </property>
   </action>
   <action name="actionRevertFile">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/revert-file.png</normaloff>:/icons/revert-file.png</iconset>
+   </property>
    <property name="text">
-    <string>RevertFile</string>
+    <string>Revert Tag</string>
    </property>
   </action>
   <action name="actionFolderByTag">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/tag-folder.png</normaloff>:/icons/tag-folder.png</iconset>
+   </property>
    <property name="text">
-    <string>FolderByTag</string>
+    <string>Tag - Folder</string>
    </property>
   </action>
   <action name="actionGetOnlineTags">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/download.png</normaloff>:/icons/download.png</iconset>
+   </property>
    <property name="text">
-    <string>GetOnlineTags</string>
+    <string>Get Tags</string>
    </property>
   </action>
   <action name="actionCreateFolder">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/new-folder.png</normaloff>:/icons/new-folder.png</iconset>
+   </property>
    <property name="text">
-    <string>CreateFolder</string>
+    <string>New Folder</string>
    </property>
   </action>
   <action name="actionLevelUp">
-   <property name="text">
-    <string>LevelUp</string>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/level-up.png</normaloff>:/icons/level-up.png</iconset>
    </property>
-  </action>
-  <action name="actionPutTagsOnline">
    <property name="text">
-    <string>PutTagsOnline</string>
+    <string>Return</string>
    </property>
-  </action>
-  <action name="actionSpectogram">
-   <property name="text">
-    <string>Spectogram</string>
+   <property name="iconText">
+    <string>Folder Up</string>
    </property>
   </action>
   <action name="actionSetRootDir">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/set-folder.png</normaloff>:/icons/set-folder.png</iconset>
+   </property>
    <property name="text">
-    <string>SetRootDir</string>
+    <string>Set Folder</string>
    </property>
   </action>
   <action name="actionRefresh">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/refresh.png</normaloff>:/icons/refresh.png</iconset>
+   </property>
    <property name="text">
     <string>Refresh</string>
    </property>
@@ -480,13 +527,12 @@
    </property>
   </action>
   <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
+   </property>
    <property name="text">
     <string>Settings</string>
-   </property>
-  </action>
-  <action name="actionSetSource">
-   <property name="text">
-    <string>SetSource</string>
    </property>
   </action>
  </widget>

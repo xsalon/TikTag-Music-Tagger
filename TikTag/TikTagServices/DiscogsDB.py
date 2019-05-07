@@ -62,7 +62,7 @@ class DiscogsDB(object):
             count = results.count
 
         for i in range(count):
-            print(str(results[i]))
+            #print(str(results[i]))
             if isRelease:
                 for trackArtist in results[i].artists:
                      #print(trackArtist.name + "|" + artist)
@@ -209,10 +209,9 @@ class DiscogsDB(object):
                     if results.count > 0:
                         isRelease = True;
                     else:
-                        raise ServiceError("404", "Song " + artist + " - " + title + " not found!")                
+                        raise ServiceError("404", "Song " + artist + " - " + title + " not found!")
             else:
-                pass
-                #ak album poriesit, ak bez zhody tak fingerprint  
+                return False
         except discogs_client.exceptions.HTTPError as e:
             raise ServiceError(e.status_code, e.msg)
 
@@ -220,9 +219,9 @@ class DiscogsDB(object):
         if not result:
             raise ServiceError("404", "Song " + artist + " - " + title + " not found!")
 
-        print(str(finalDict))
         finalDict = self.makeTagDict(result, title, artist, finalDict, isRelease)
-        print(str(finalDict))
+        #print(str(finalDict))
         if not isRelease and result.main_release:
             finalDict = self.makeTagDict(result.main_release, title, artist, finalDict, isRelease)
-        print(str(finalDict))
+        #print(str(finalDict))
+        return finalDict
