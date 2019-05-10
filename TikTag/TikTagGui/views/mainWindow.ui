@@ -340,7 +340,7 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
    <addaction name="actionSelectFolder"/>
    <addaction name="actionDelete"/>
@@ -407,7 +407,7 @@
   </widget>
   <action name="actionSelectFolder">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/open-folder.png</normaloff>:/icons/open-folder.png</iconset>
    </property>
    <property name="text">
@@ -416,7 +416,7 @@
   </action>
   <action name="actionTagToFile">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/tag-file.png</normaloff>:/icons/tag-file.png</iconset>
    </property>
    <property name="text">
@@ -425,7 +425,7 @@
   </action>
   <action name="actionFileToTag">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/file-tag.png</normaloff>:/icons/file-tag.png</iconset>
    </property>
    <property name="text">
@@ -434,7 +434,7 @@
   </action>
   <action name="actionDelete">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/delete.png</normaloff>:/icons/delete.png</iconset>
    </property>
    <property name="text">
@@ -443,7 +443,7 @@
   </action>
   <action name="actionDeleteTag">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/delete-tag.png</normaloff>:/icons/delete-tag.png</iconset>
    </property>
    <property name="text">
@@ -452,7 +452,7 @@
   </action>
   <action name="actionRevertFile">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/revert-file.png</normaloff>:/icons/revert-file.png</iconset>
    </property>
    <property name="text">
@@ -461,7 +461,7 @@
   </action>
   <action name="actionFolderByTag">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/tag-folder.png</normaloff>:/icons/tag-folder.png</iconset>
    </property>
    <property name="text">
@@ -470,7 +470,7 @@
   </action>
   <action name="actionGetOnlineTags">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/download.png</normaloff>:/icons/download.png</iconset>
    </property>
    <property name="text">
@@ -479,7 +479,7 @@
   </action>
   <action name="actionCreateFolder">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/new-folder.png</normaloff>:/icons/new-folder.png</iconset>
    </property>
    <property name="text">
@@ -488,7 +488,7 @@
   </action>
   <action name="actionLevelUp">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/level-up.png</normaloff>:/icons/level-up.png</iconset>
    </property>
    <property name="text">
@@ -500,7 +500,7 @@
   </action>
   <action name="actionSetRootDir">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/set-folder.png</normaloff>:/icons/set-folder.png</iconset>
    </property>
    <property name="text">
@@ -509,7 +509,7 @@
   </action>
   <action name="actionRefresh">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/refresh.png</normaloff>:/icons/refresh.png</iconset>
    </property>
    <property name="text">
@@ -517,18 +517,26 @@
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="../images.qrc">
+     <normaloff>:/icons/question.png</normaloff>:/icons/question.png</iconset>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
   </action>
   <action name="actionExit">
+   <property name="icon">
+    <iconset resource="../images.qrc">
+     <normaloff>:/icons/delete-tag.png</normaloff>:/icons/delete-tag.png</iconset>
+   </property>
    <property name="text">
     <string>Exit</string>
    </property>
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset resource="../images.qrc">
      <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
    </property>
    <property name="text">
@@ -537,7 +545,7 @@
   </action>
  </widget>
  <resources>
-  <include location="images.qrc"/>
+  <include location="../images.qrc"/>
  </resources>
  <connections/>
 </ui>

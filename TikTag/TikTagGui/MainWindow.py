@@ -11,6 +11,7 @@ from TikTagServices.OnlineServices import OnlineServices
 from TikTagCtrl.Tagger import Tagger
 from TikTagCtrl.TaggerError import *
 from TikTagServices.ServiceError import *
+import acoustid
 import webbrowser
 import shutil
 import enum
@@ -106,6 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.treeView.setModel(self.fileModel)
         self.changeWorkDirectory(folder)
         self.treeView.setSortingEnabled(1)
+        self.treeView.sortByColumn(0, Qt.AscendingOrder)
         self.treeView.header().setContextMenuPolicy(Qt.CustomContextMenu)
         self.initCtxTreeViewHeader()
         self.initCtxListWidget()
@@ -895,6 +897,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.settings.value("Settings/Online/ServicesList"):
             self.settings.setValue("Settings/Online/ServicesList", OnlineServices.SERVICES)
 
+        if not self.settings.value("Settings/Online/AcoustID"):
+            self.settings.setValue("Settings/Online/AcoustID", 0)
+
         if not self.settings.value("Settings/Online/Mode"):
             self.settings.setValue("Settings/Online/Mode", "Complete")
 
@@ -911,6 +916,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.uiSettingsDialog.radioButtonOverwrite.setChecked(True)
             self.settings.setValue("Settings/Online/Mode", "Overwrite")
+
+        if self.settings.value("Settings/Online/AcoustID"):
+            self.uiSettingsDialog.checkBoxFingerprint.setChecked(True)
+        else:
+            self.uiSettingsDialog.checkBoxFingerprint.setChecked(False)
    
         self.uiSettingsDialog.listWidget.clear()
         for service in self.settings.value("Settings/Online/ServicesList"):
@@ -937,6 +947,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 self.settings.setValue("Settings/Online/Mode", "Overwrite")
 
+            if self.uiSettingsDialog.checkBoxFingerprint.isChecked():
+                self.settings.setValue("Settings/Online/AcoustID", 1)
+            else:
+                self.settings.setValue("Settings/Online/AcoustID", 0)
+
            
     #---------------------------------GET ONLINE TAGS--------------------------------------------------
     
@@ -960,11 +975,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     
     def getOnlineTags(self):
-        tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
-        progressDialog = QProgressDialog("Downloading...", "Cancel", 0, tasksCount, self)
-        progressDialog.setModal(True)
-        progressDialog.setWindowTitle("Get Tags")
-
         if not self.onlineTagger:            
             self.onlineTagger = OnlineServices(self.getServicesOrder())
             self.initOnlineServices()
@@ -976,6 +986,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.initOnlineServices()
         
         if self.onlineTagger:
+            tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
+            progressDialog = QProgressDialog("Downloading...", "Cancel", 0, tasksCount, self)
+            progressDialog.setModal(True)
+            progressDialog.setWindowTitle("Get Tags")
             for i, item in enumerate(self.treeView.selectedIndexes()):
                if item.column() == 0:
                    progressDialog.setValue(i)
@@ -986,7 +1000,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                    path = self.fileModel.filePath(item)
                    try:
                        metadata = Tagger.fetchTags(path)
-                       result = self.onlineTagger.getTags(metadata)
+                       result = self.onlineTagger.getTags(metadata, self.settings.value("Settings/Online/AcoustID"), path)
                    except TaggerError as e:
                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
                        print(e.msg, e.src)

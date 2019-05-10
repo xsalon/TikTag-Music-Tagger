@@ -1,2 +1,0 @@
-class GracenoteDB(object):
-    pass

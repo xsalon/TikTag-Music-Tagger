@@ -1,19 +1,18 @@
 from TikTagServices.DiscogsDB import DiscogsDB as Discogs
 from TikTagServices.MusicBrainzDB import MusicBrainzDB as MusicBrainz
 from TikTagServices.SpotifyDB import SpotifyDB as Spotify
-from TikTagServices.GracenoteDB import GracenoteDB as Gracenote
+from TikTagServices.AcoustID import AcoustID
 from TikTagServices.ServiceError import *
 
 
 class OnlineServices(object):
-    SERVICES = ["Discogs", "Spotify", "Musicbrainz", "Gracenote"]
+    SERVICES = ["Discogs", "Spotify", "Musicbrainz"]
 
     def __init__(self, services):
         self.services = services
         self.clientDiscogs = None
         self.clientSpotify = None
         self.clientMusicbrainz = None
-        self.clientGracenote = None
 
         
     def initServices(self, services, discogs_code=None):
@@ -36,11 +35,7 @@ class OnlineServices(object):
 
         if "Musicbrainz" in services:
             if not self.clientMusicbrainz:
-                self.clientMusicbrainz = "hej"
-
-        if "Gracenote" in services:
-            if not self.clientGracenote:
-                self.clientGracenote = "hoo"
+                self.clientMusicbrainz = MusicBrainz()
 
 
     def servicesStatus(self):
@@ -50,13 +45,14 @@ class OnlineServices(object):
             return False;
         if "Musicbrainz" in self.services and not self.clientMusicbrainz:
             return False;
-        if "Gracenote" in self.services and not self.clientGracenote:
-            return False;
         return True
 
    
-    def getTags(self, metadata):
+    def getTags(self, metadata, enableFP=False ,path=None):
         finalDict = {}
+        print("VNORENIE")
+        print(metadata)
+        print(" ")
         if "artist" in metadata and "title" in metadata:
             for service in self.services:
                 try:
@@ -73,15 +69,30 @@ class OnlineServices(object):
                                 if not key in finalDict or not finalDict[key]:
                                     finalDict[key] = value
                     elif service == "Musicbrainz":
-                        pass
-                    elif service == "Gracenote":
-                        pass
+                        resultMusicbrainz = self.clientMusicbrainz.getByRecord(metadata)
+                        if resultMusicbrainz:
+                            for key, value in resultMusicbrainz.items():
+                                if not key in finalDict or not finalDict[key]:
+                                    finalDict[key] = value
                 except ServiceError as e:
                     if e.code == "404":
                         print(e.code, e.msg)
                     else:
                         raise ServiceError(e.code, e.msg)
-        else:
-            pass #fingerprinting
-      
+            
+            if not finalDict and not enableFP:
+                return metadata
+       
+        elif enableFP and path:
+            fingerprint = AcoustID()
+            finalDict = fingerprint.getFingerprintedData(path)
+            if finalDict:
+                print("FINGERPRINT")
+                print(finalDict)
+                finalDict = self.getTags(finalDict, 0, path)
+            else:
+                return {}
+        
+        print("OUTPUT")
+        print(finalDict)
         return finalDict

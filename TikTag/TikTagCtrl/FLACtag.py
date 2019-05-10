@@ -55,7 +55,7 @@ class FLACtag(object):
                'Disc Number' : 'discnumber',
                'Catalog Number' : 'catalognumber',
                'BPM' : 'bpm',
-               'Initial Key' : 'initialkey',
+               'Initial Key' : 'key',
                'Encoded by' : 'encodedby',
                'Encoder' : 'encoder',
                'Encoder Options' : 'encoder_options',

@@ -46,22 +46,13 @@
     <Compile Include="TikTagGui\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TikTagServices\AcoustID.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TikTagServices\OnlineServices.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagServices\SpotifyDB.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TikTagServices\GracenoteDB.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TikTagServices\libs\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TikTagServices\libs\pygn.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="TikTagServices\CounterBPM.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TikTagServices\ServiceError.py" />
@@ -89,13 +80,28 @@
     <Folder Include="TikTagCtrl\" />
     <Folder Include="TikTagGui\" />
     <Folder Include="TikTagGui\icons\" />
-    <Folder Include="TikTagServices\libs\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.6-32" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="TikTagGui\icons\delete-tag.png" />
+    <Content Include="TikTagGui\icons\delete.png" />
+    <Content Include="TikTagGui\icons\discogs.png" />
+    <Content Include="TikTagGui\icons\download.png" />
+    <Content Include="TikTagGui\icons\file-tag.png" />
+    <Content Include="TikTagGui\icons\level-up.png" />
+    <Content Include="TikTagGui\icons\musicbrainz.png" />
+    <Content Include="TikTagGui\icons\new-folder.png" />
     <Content Include="TikTagGui\icons\open-folder.png" />
+    <Content Include="TikTagGui\icons\question.png" />
+    <Content Include="TikTagGui\icons\refresh.png" />
+    <Content Include="TikTagGui\icons\revert-file.png" />
+    <Content Include="TikTagGui\icons\set-folder.png" />
+    <Content Include="TikTagGui\icons\settings.png" />
+    <Content Include="TikTagGui\icons\spotify.png" />
+    <Content Include="TikTagGui\icons\tag-file.png" />
+    <Content Include="TikTagGui\icons\tag-folder.png" />
     <Content Include="TikTagGui\images.qrc" />
     <Content Include="TikTagGui\views\mainWindow.ui" />
     <Content Include="TikTagGui\views\pathDialog.ui" />

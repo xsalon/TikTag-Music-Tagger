@@ -13,9 +13,9 @@
 	<file>icons/revert-file.png</file>
 	<file>icons/new-folder.png</file>
 	<file>icons/refresh.png</file>
+	<file>icons/question.png</file>
 	<file>icons/spotify.png</file>
 	<file>icons/discogs.png</file>
 	<file>icons/musicbrainz.png</file>
-	<file>icons/gracenote.png</file>
   </qresource>
 </RCC>
