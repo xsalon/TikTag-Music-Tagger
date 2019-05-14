@@ -1,5 +1,7 @@
 import discogs_client
+import time
 from TikTagServices.ServiceError import ServiceError
+from TikTagServices.FuzzyComparer import FuzzyComparer
 
 class DiscogsDB(object):
     def __init__(self):
@@ -7,6 +9,7 @@ class DiscogsDB(object):
         self.secretKey = "doLEDwLjrQuEwJCRrdTVEsjgegqqNEQC"
         self.client = discogs_client.Client("TikTag/1.0")
         self.client.set_consumer_key(self.customerKey, self.secretKey)
+        self.counter = 0
 
 
     def getAuthUrl(self):
@@ -27,71 +30,74 @@ class DiscogsDB(object):
         except discogs_client.exceptions.HTTPError as e:
             raise ServiceError(e.status_code, e.msg)
 
-    
-    def inTracklist(self, tracklist, title, artist=None):
+
+    def inTracklist(self, tracklist, title, artist=None, length=False):
         for track in tracklist:
-            #print(track.title + "|" + title)
-            if self.titleComparer(track.title, title):
+            if FuzzyComparer.fuzzComparer(track.title, title):
+                okStatus = True
                 if artist:
                     for trackArtist in track.artists:
-                        if self.artistComparer(artist, trackArtist.name):
+                        if FuzzyComparer.fuzzComparer(artist, trackArtist.name):
                             self.artistNeeded = True;
-                            return True
-                else:
-                    return True
+                            okStatus = True
+                if track.duration and length:
+                    if self.durationCompare(track.duration, length):
+                        okStatus = True
+                    else:
+                        okStatus = False
+                return okStatus
         return False
 
 
-    def getFromTracklist(self, tracklist, title, artist=None):
+    def getFromTracklist(self, tracklist, title, artist=None, length=False):
         for track in tracklist:
-            if self.titleComparer(track.title, title):
+            if FuzzyComparer.fuzzComparer(track.title, title):
                 if artist:
                     for trackArtist in track.artists:
-                        if self.artistComparer(artist, trackArtist.name):
+                        if FuzzyComparer.fuzzComparer(artist, trackArtist.name):
                             return track
                 else:
                     return track
         return False
 
 
-    def chooseFromResults(self, results, title, artist, isRelease):
+    def chooseFromResults(self, results, title, artist, isRelease, length=None):
         result = None
-        if results.count > 2:
-            count = 3;
+        if results.count > 4:
+            count = 5;
         else:
             count = results.count
 
         for i in range(count):
-            #print(str(results[i]))
             if isRelease:
                 for trackArtist in results[i].artists:
-                     #print(trackArtist.name + "|" + artist)
-                     if self.artistComparer(trackArtist.name, artist):
-                        if self.inTracklist(results[i].tracklist, title):
+                     if FuzzyComparer.fuzzComparer(trackArtist.name, artist):
+                        if self.inTracklist(results[i].tracklist, title, length=length):
                             self.result = results[i]
                             return results[i]
                      else:
-                        if self.inTracklist(results[i].tracklist, title, artist):
+                        if self.inTracklist(results[i].tracklist, title, artist, length):
                             self.result = results[i]
                             return results[i]
             else:
-                if self.inTracklist(results[i].tracklist, title):
+                if self.inTracklist(results[i].tracklist, title, length=length):
                     self.result = results[i]
                     return results[i]
         return False
 
 
-    def titleComparer(self, resultTitle, givenTitle):
-        return resultTitle.lower() == givenTitle.lower()
-
-    
-    def artistComparer(self, resultArtist, givenArtist):
-        return resultArtist.lower() == givenArtist.lower()
-
-
-    def wordProcessor(self, word):
-        pass
-
+    def durationCompare(self, resultLength, givenLength):
+        if len(resultLength) < 6:
+            procLength = str(resultLength).split(":")
+            msLength = (int(procLength[0])*60 + int(procLength[1]))*1000
+            #print(int(msLength), " vs ", int(givenLength))
+            #print(abs(int(msLength) - int(givenLength)))
+            if abs(int(msLength) - int(givenLength)) < 10000:
+                return True
+            else:
+                return False
+        return True
+   
 
     def makeTagDict(self, result, title, artist, finalDict, isRelease):
         if self.artistNeeded:
@@ -131,8 +137,8 @@ class DiscogsDB(object):
             if "-" in track.position:
                 finalDict["Disc Number"] = track.position.split("-")[0]
 
-        if not finalDict["Lenght"] and track.duration:
-            finalDict["Lenght"] = track.duration
+        if not finalDict["Length"] and track.duration:
+            finalDict["Length"] = track.duration
         
         if not finalDict["Catalog Number"] and "catno" in result.data:
             finalDict["Catalog Number"] = result.data["catno"]
@@ -159,7 +165,7 @@ class DiscogsDB(object):
         return finalDict
 
 
-    def getByRecord(self, metadata):
+    def getByRecord(self, metadata, length=False):
         self.artistNeeded = False
         isRelease = False
         isAlbum = False
@@ -176,15 +182,15 @@ class DiscogsDB(object):
              'Modified by' : [],
              'Composer' : [],
              'Lyricist' : [],
-             'Lenght' : None,
+             'Length' : None,
              'Arranger' : [],
              'Barcode' : None
         };
 
         try:
             if "artist" in metadata and "title" in metadata:
-                artist = ' '.join(metadata["artist"]).strip()
-                title = ' '.join(metadata["title"]).strip()
+                artist = FuzzyComparer.queryProcessor(' '.join(metadata["artist"]).strip())
+                title = FuzzyComparer.queryProcessor(' '.join(metadata["title"]).strip())
                 release = ''
                 results = None
                 if "album" in metadata and metadata["album"]:
@@ -195,11 +201,9 @@ class DiscogsDB(object):
               
                 if isAlbum:
                     results = self.client.search(query=queryAlbum, type="master")
-                    #print(str(results.url))
                 
                 if not results or results.count == 0:
                     results = self.client.search(query=queryNoAlbum, type="master")
-                    #print(str(results.url))
 
                 if results.count == 0:
                     if isAlbum:
@@ -209,19 +213,26 @@ class DiscogsDB(object):
                     if results.count > 0:
                         isRelease = True;
                     else:
-                        raise ServiceError("404", "Song " + artist + " - " + title + " not found!")
+                        return False
+                        #raise ServiceError("404", "Song " + artist + " - " + title + " not found!")
             else:
                 return False
         except discogs_client.exceptions.HTTPError as e:
             raise ServiceError(e.status_code, e.msg)
 
-        result = self.chooseFromResults(results, title, artist, isRelease)
-        if not result:
-            raise ServiceError("404", "Song " + artist + " - " + title + " not found!")
+        if length:
+            length = length*1000
 
+        result = self.chooseFromResults(results, title, artist, isRelease, length)
+        if not result:
+            return False
+
+        print(self.counter)
+        self.counter += 1
         finalDict = self.makeTagDict(result, title, artist, finalDict, isRelease)
-        #print(str(finalDict))
+
         if not isRelease and result.main_release:
             finalDict = self.makeTagDict(result.main_release, title, artist, finalDict, isRelease)
         #print(str(finalDict))
+        time.sleep(0.8)
         return finalDict

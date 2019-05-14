@@ -49,6 +49,9 @@
     <Compile Include="TikTagServices\AcoustID.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TikTagServices\FuzzyComparer.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TikTagServices\OnlineServices.py">
       <SubType>Code</SubType>
     </Compile>
@@ -107,6 +110,7 @@
     <Content Include="TikTagGui\views\pathDialog.ui" />
     <Content Include="TikTagGui\views\settingsDialog.ui" />
     <Content Include="TikTagGui\views\sourcesDialog.ui" />
+    <Content Include="TikTagGui\views\styleSheet.qss" />
     <Content Include="TikTagGui\views\tagFileDialog.ui" />
     <Content Include="TikTagGui\views\urlDialog.ui" />
   </ItemGroup>

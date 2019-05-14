@@ -33,7 +33,7 @@ class Tagger(object):
                'ISRC',
                'Composer', 
                'Lyricist', 
-               'Lenght'
+               'Length'
         ]
 
     @classmethod
@@ -57,6 +57,12 @@ class Tagger(object):
     def getKeys(cls, path):
         file = cls.openFile(path)
         return file.tagKeys
+
+
+    @classmethod
+    def getOnlyLength(cls, path):
+        file = cls.openFile(path)
+        return file.getLength()
 
         
     @classmethod

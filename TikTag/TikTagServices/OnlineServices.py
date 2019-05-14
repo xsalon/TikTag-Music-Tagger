@@ -48,37 +48,31 @@ class OnlineServices(object):
         return True
 
    
-    def getTags(self, metadata, enableFP=False ,path=None):
+    def getTags(self, metadata, enableFP=False , path=None, length=False):
         finalDict = {}
-        print("VNORENIE")
-        print(metadata)
-        print(" ")
         if "artist" in metadata and "title" in metadata:
             for service in self.services:
                 try:
                     if service == "Discogs":
-                        resultDiscogs = self.clientDiscogs.getByRecord(metadata)
+                        resultDiscogs = self.clientDiscogs.getByRecord(metadata, length)
                         if resultDiscogs:
                             for key, value in resultDiscogs.items():
                                 if not key in finalDict or not finalDict[key]:
                                     finalDict[key] = value
                     elif service == "Spotify":
-                        resultSpotify = self.clientSpotify.getByRecord(metadata)
+                        resultSpotify = self.clientSpotify.getByRecord(metadata, length)
                         if resultSpotify:
                             for key, value in resultSpotify.items():
                                 if not key in finalDict or not finalDict[key]:
                                     finalDict[key] = value
                     elif service == "Musicbrainz":
-                        resultMusicbrainz = self.clientMusicbrainz.getByRecord(metadata)
+                        resultMusicbrainz = self.clientMusicbrainz.getByRecord(metadata, length)
                         if resultMusicbrainz:
                             for key, value in resultMusicbrainz.items():
                                 if not key in finalDict or not finalDict[key]:
                                     finalDict[key] = value
                 except ServiceError as e:
-                    if e.code == "404":
-                        print(e.code, e.msg)
-                    else:
-                        raise ServiceError(e.code, e.msg)
+                    raise ServiceError(e.code, e.msg)
             
             if not finalDict and not enableFP:
                 return metadata
@@ -87,12 +81,8 @@ class OnlineServices(object):
             fingerprint = AcoustID()
             finalDict = fingerprint.getFingerprintedData(path)
             if finalDict:
-                print("FINGERPRINT")
-                print(finalDict)
                 finalDict = self.getTags(finalDict, 0, path)
             else:
                 return {}
         
-        print("OUTPUT")
-        print(finalDict)
         return finalDict

@@ -9,7 +9,10 @@ import datetime
 class AlbumArt(object):
     def __init__(self, tag):
         self.tag = tag
-        self.type = str(PictureType(self.tag.type)).split('.')[1]
+        if "." in str(PictureType(self.tag.type)):
+            self.type = str(PictureType(self.tag.type)).split('.')[1]
+        else:
+           self.type = str(PictureType(self.tag.type))
         self.desc = str(self.tag.desc)
         self.mime = str(self.tag.mime)
         try:
@@ -71,7 +74,7 @@ class FLACtag(object):
                'Composer' : 'composer', 
                'Copyright' : 'copyright',  
                'Lyricist' : 'lyricist', 
-               'Lenght' : 'length', 
+               'Length' : 'length', 
                'Media' : 'media', 
                'Mood' : 'mood', 
                'Version' : 'version', 
@@ -87,10 +90,16 @@ class FLACtag(object):
                'Performer' : 'performer', 
                'Barcode' : 'barcode', 
                'Language' : 'language', 
-               'Track ID (MB)' : 'musicbrainz_trackid', 
                'Website' : 'website', 
                'Replay Gain' : 'replaygain_track_gain', 
                'Replay Gain Peak' : 'replaygain_track_peak', 
+               'Artist ID (MB)' : 'musicbrainz_artistid', 
+               'Album ID (MB)' : 'musicbrainz_albumid',  
+               'Album Status (MB)' : 'musicbrainz_albumstatus', 
+               'Album Type (MB)' : 'musicbrainz_albumtype', 
+               'Release Country' : 'releasecountry', 
+               'Release Track ID (MB)' : 'musicbrainz_releasetrackid', 
+               'Release Group ID (MB)' : 'musicbrainz_releasegroupid', 
         }
 
  
@@ -113,6 +122,13 @@ class FLACtag(object):
         generalInfo["Codec"] = "FLAC "
        
         return generalInfo
+
+
+    def getLength(self):
+        if hasattr(self.file.info, 'length'):
+            return self.file.info.length
+        else:
+            return False
 
 
     def metadata(self):

@@ -22,7 +22,6 @@ class AcoustID(object):
         artistCompare = []
         artistList = []
         resultList = acoustid.match(self.clientId, path, parse=False)
-        print(resultList)
 
         if resultList and "status" in resultList:
             if resultList["status"] == "ok":
@@ -37,7 +36,6 @@ class AcoustID(object):
                                 if i == 10:
                                     break
 
-        print(artistCompare)
         potentialArtist = self.mostCommon(artistCompare)
 
         joinWord = ", "

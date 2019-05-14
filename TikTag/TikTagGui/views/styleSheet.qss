@@ -1,0 +1,29 @@
+QLabel#albumArtLabel {
+	 padding: 2px
+ }
+
+ QLabel#albumArtLabel {
+	 padding: 2px
+ }
+
+ QLabel#albumArtLabel:hover
+{
+  background-color: #d7d6d5;
+  border: 3px solid #aeadac;
+}
+
+QLabel#albumArtLabel:!hover
+{
+  border: 1px solid #d7d6d5;
+}
+
+ QLabel#bigAlbumArtLabel:hover
+{
+  background-color: #d7d6d5;
+  border: 3px solid #aeadac;
+}
+
+QLabel#bigAlbumArtLabel:!hover
+{
+  border: 1px solid #d7d6d5;
+}

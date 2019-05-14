@@ -1,56 +1,52 @@
 import musicbrainzngs
 from datetime import datetime as dt
 from TikTagServices.ServiceError import ServiceError
+from TikTagServices.FuzzyComparer import FuzzyComparer
 
 class MusicBrainzDB(object):
     METHOD_COUNT = 3
     
-    def _init_(self):
+    def __init__(self):
         musicbrainzngs.set_useragent("TikTag", "1.0")
+        self.counter = 0
 
 
-    def checkRecording(self, results, artist, title): 
-        try:
-            if self.titleComparer(results["title"], title):
-                for artistItem in results["artist-credit"]:
-                    if self.artistComparer(artistItem["artist"]["name"], artist):
-                        return True;
-        except KeyError:
-            print("nieco zle")
-        return False
+    def checkRecording(self, results, artist, title, length=False): 
+        if FuzzyComparer.fuzzComparer(results["title"], title):
+            okStatus = True
+            for artistItem in results["artist-credit"]:
+                if "artist" in artistItem and "name" in artistItem["artist"]:
+                    if FuzzyComparer.fuzzComparer(artistItem["artist"]["name"], artist):
+                        okStatus = True;
+                    else:
+                        okStatus = False
+            if "length" in results and length:
+                if FuzzyComparer.durationCompare(results["length"], length):
+                    okStatus = True
+                else:
+                    okStatus = False
+            return okStatus
 
 
     def checkRelease(self, results, artist, album=None):
-        try:
-            if album:
-                if self.titleComparer(results["title"], album):
-                    if results["status"] == "Official":
-                        if "artist-credit" in results:
-                            for artistItem in results["artist-credit"]:
-                                if self.artistComparer(artistItem["artist"]["name"], artist):
+        if album:
+            if FuzzyComparer.fuzzComparer(results["title"], album):
+                if "status" in results and results["status"] == "Official":
+                    if "artist-credit" in results:
+                        for artistItem in results["artist-credit"]:
+                            if "artist" in artistItem and "name" in artistItem["artist"]:
+                                if FuzzyComparer.Comparer(artistItem["artist"]["name"], artist):
                                     return True;
-                        return True;
-            else:
-                if "artist-credit" in results:
-                            for artistItem in results["artist-credit"]:
-                                if self.artistComparer(artistItem["artist"]["name"], artist):
+        else:
+            if "artist-credit" in results:
+                        for artistItem in results["artist-credit"]:
+                            if "artist" in artistItem and "name" in artistItem["artist"]:
+                                if FuzzyComparer.fuzzComparer(artistItem["artist"]["name"], artist):
                                     return True
-        except KeyError:
-            print("nieco zle")
         return False
 
 
-    def titleComparer(self, resultTitle, givenTitle):
-        #print(resultTitle, givenTitle)
-        return resultTitle.lower() == givenTitle.lower()
-
-    
-    def artistComparer(self, resultArtist, givenArtist):
-        #print(resultArtist, givenArtist)
-        return resultArtist.lower() == givenArtist.lower()
-
-
-    def getByArtistTitle(self, metadata): 
+    def getByArtistTitle(self, metadata, length=False):
         musicbrainzngs.set_useragent("TikTag", "1.0")
         if "artist" in metadata and "title" in metadata:
             artist = ' '.join(metadata["artist"]).strip()
@@ -60,27 +56,30 @@ class MusicBrainzDB(object):
             results = musicbrainzngs.search_recordings(artist=artist, recording=title)
             if results:
                 for record in results["recording-list"]:
-                    if self.checkRecording(record, artist, title):
-                        recordingResult = record    
+                    if self.checkRecording(record, artist, title, length):
+                        recordingResult = record   
                         lowDate = "3000-12-30"
                         index = 0
-                        for i, releaseItem in enumerate(recordingResult["release-list"]):
-                            if "date" in releaseItem:
-                                if len(releaseItem["date"]) == 10:
-                                    date1 = dt.strptime(releaseItem["date"], "%Y-%m-%d")
-                                    date2 = dt.strptime(lowDate, "%Y-%m-%d")
-                                elif len(releaseItem["date"]) == 4:
-                                    date1 = dt.strptime(releaseItem["date"] + "-12-30", "%Y-%m-%d")
-                                    date2 = dt.strptime(lowDate, "%Y-%m-%d")
-                                else:
-                                    continue
-                                if date2 > date1:
-                                    if len(releaseItem["date"]) == 4:
-                                        lowDate = releaseItem["date"] + "-12-30"
+                        if "release-list" in recordingResult:
+                            for i, releaseItem in enumerate(recordingResult["release-list"]):
+                                if "date" in releaseItem:
+                                    if len(releaseItem["date"]) == 10:
+                                        date1 = dt.strptime(releaseItem["date"], "%Y-%m-%d")
+                                        date2 = dt.strptime(lowDate, "%Y-%m-%d")
+                                    elif len(releaseItem["date"]) == 4:
+                                        date1 = dt.strptime(releaseItem["date"] + "-12-30", "%Y-%m-%d")
+                                        date2 = dt.strptime(lowDate, "%Y-%m-%d")
                                     else:
-                                        lowDate = releaseItem["date"]
-                                    index = i
-                        releaseResult = recordingResult["release-list"][index]
+                                        continue
+                                    if date2 > date1:
+                                        if len(releaseItem["date"]) == 4:
+                                            lowDate = releaseItem["date"] + "-12-30"
+                                        else:
+                                            lowDate = releaseItem["date"]
+                                        index = i
+                            releaseResult = recordingResult["release-list"][index]
+                        else:
+                            return False
                         return [recordingResult, releaseResult]
         return False
 
@@ -88,8 +87,8 @@ class MusicBrainzDB(object):
     def getByAlbum(self, metadata):
         musicbrainzngs.set_useragent("TikTag", "1.0")
         if "artist" in metadata and "album" in metadata:
-            artist = ' '.join(metadata["artist"]).strip()
-            release = ' '.join(metadata["album"]).strip()
+            artist = FuzzyComparer.queryProcessor(' '.join(metadata["artist"]).strip())
+            release = FuzzyComparer.queryProcessor(' '.join(metadata["album"]).strip())
             results = None
             releaseResult = None
             results = musicbrainzngs.search_releases(artist=artist, release=release)
@@ -97,7 +96,7 @@ class MusicBrainzDB(object):
                 lowDate = "3000-12-30"
                 index = 0
                 for i, releaseItem in enumerate(results["release-list"]):
-                    if self.checkRelease(results["release-list"][i], artist, release) :   
+                    if self.checkRelease(results["release-list"][i], artist, release):   
                         if "date" in releaseItem:
                             if len(releaseItem["date"]) == 10:
                                 date1 = dt.strptime(releaseItem["date"], "%Y-%m-%d")
@@ -148,17 +147,18 @@ class MusicBrainzDB(object):
                 return results["release-list"][index]
         return False
 
+
     def mapRecordingResult(self, result, finalDict):
         if "title" in result and result["title"]:
             finalDict["Title"] = result["title"]
 
         if "artist-credit" in result and result["artist-credit"]:
-            finalDict["Artist"] = [artist["artist"]["name"] for artist in result["artist-credit"]]
+            finalDict["Artist"] = [artist["artist"]["name"] for artist in result["artist-credit"] if "artist" in artist and "name" in artist["artist"]]
             finalDict["Artist ID (MB)"] = result["artist-credit"][0]["artist"]["id"]
             if "sort-name" in result["artist-credit"][0]["artist"]:
                 finalDict["Artist Sort"] = result["artist-credit"][0]["artist"]["sort-name"]
 
-        if "tag-list" in result["tag-list"]:
+        if "tag-list" in result:
             finalDict["Genre"] = [tag["name"] for tag in result["tag-list"]]
 
         if "isrc-list" in result and result["isrc-list"]:
@@ -170,8 +170,8 @@ class MusicBrainzDB(object):
             if "track-list" in result["medium-list"][0]:
                 finalDict["Track Number"] = result["medium-list"][0]["track-list"][0]["number"]
 
-        if "lenght" in result and result["lenght"]:
-            finalDict["Lenght"] = result["lenght"]
+        if "length" in result and result["length"]:
+            finalDict["length"] = result["length"]
 
         if "id" in result:
             finalDict["Release Track ID (MB)"] = result["id"]
@@ -190,14 +190,14 @@ class MusicBrainzDB(object):
             finalDict["Album Status (MB)"] = result["status"]
 
         if "artist-credit" in result and result["artist-credit"]:
-            finalDict["Album Artist"] = [artist["artist"]["name"] for artist in result["artist-credit"]]
+            finalDict["Album Artist"] = [artist["artist"]["name"] for artist in result["artist-credit"] if "artist" in artist and "name" in artist["artist"]]
 
         if "release-group" in result and result["release-group"]:
             finalDict["Release Group ID (MB)"] = result["release-group"]["id"]
             if "primary-type" in result["release-group"]:
                 finalDict["Album Type (MB)"] = result["release-group"]["primary-type"]
 
-        if result["date"]:
+        if "date" in result and result["date"]:
             finalDict["Date"] = result["date"]
             finalDict["Original Date"] = result["date"][:4]
 
@@ -221,7 +221,7 @@ class MusicBrainzDB(object):
         return finalDict
 
      
-    def getByRecord(self, metadata):
+    def getByRecord(self, metadata, length=False):
         idAlbum = False
         recordingResult = ''
         releaseResult = ''
@@ -237,7 +237,7 @@ class MusicBrainzDB(object):
              'Disc Number' : None,
              'Catalog Number' : None,
              'Organization' : None,
-             'Lenght' : None,
+             'Length' : None,
              'Barcode' : None,
              'ISRC' : None,
              'ASIN' : None,
@@ -251,29 +251,33 @@ class MusicBrainzDB(object):
              'Release Group ID (MB)' : None
         };
 
+        if length:
+            length = length*1000 
+
         for i in range(MusicBrainzDB.METHOD_COUNT):
             if i == 0:
-                print("title")
-                resultList = self.getByArtistTitle(metadata)
-                if len(resultList) == 2:
-                    finalDict = self.mapRecordingResult(resultList[0], finalDict)
+                resultList = self.getByArtistTitle(metadata, length)
+                if resultList and len(resultList) == 2:
+                    finalDict = self.mapRecordingResult(resultList[0], finalDict,)
                     finalDict = self.mapReleaseResult(resultList[1], finalDict)
+                    self.counter += 1
                     break
                 resultList = None
             if i == 1:
-                print("catno")
                 resultList = self.getByCatno(metadata)
                 if resultList:
                     finalDict = self.mapReleaseResult(resultList, finalDict)
+                    self.counter += 1
                     break
                 resultList = None
             if i == 2:
-                print("album")
                 resultList = self.getByAlbum(metadata)
                 if resultList:
                     finalDict = self.mapReleaseResult(resultList, finalDict)
+                    self.counter += 1
                     break
                 resultList = None
 
+        print(self.counter)
         return finalDict
             

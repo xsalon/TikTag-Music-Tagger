@@ -112,6 +112,9 @@
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
            <layout class="QGridLayout" name="gridLayout">
+            <property name="horizontalSpacing">
+             <number>9</number>
+            </property>
             <item row="0" column="0">
              <widget class="QLabel" name="albumArtLabel">
               <property name="sizePolicy">

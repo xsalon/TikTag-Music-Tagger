@@ -14,8 +14,14 @@ class AlbumArt():
     def __init__(self, tag):
         self.tag = tag
         #popis pri hover
-        self.type = str(tag.type).split('.')[1]
-        self.encoding = str(tag.encoding).split('.')[1]
+        if "." in str(tag.type):
+            self.type = str(tag.type).split('.')[1]
+        else:
+           self.type = str(tag.type)
+        if "." in str(tag.encoding):
+            self.encoding = str(tag.encoding).split('.')[1]
+        else:
+           self.type = str(tag.encoding)
         self.mime = str(self.tag.mime)
         self.desc = str(self.tag.desc)
         try:
@@ -67,7 +73,7 @@ class MP3tag(object):
                'Composer' : 'composer', 
                'Copyright' : 'copyright',  
                'Lyricist' : 'lyricist', 
-               'Lenght' : 'length', 
+               'Length' : 'length', 
                'Media' : 'media', 
                'Mood' : 'mood', 
                'Version' : 'version', 
@@ -120,6 +126,13 @@ class MP3tag(object):
             generalInfo["Codec"] = "MP3 " + self.bitrateModeTable[self.file.info.bitrate_mode]
        
         return generalInfo
+
+
+    def getLength(self):
+        if hasattr(self.file.info, 'length'):
+            return self.file.info.length
+        else:
+            return False
 
 
     def metadata(self):
