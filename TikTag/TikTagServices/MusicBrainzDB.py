@@ -1,9 +1,17 @@
+# File: MusicBrainzDB.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: MusicBrainz service using official python API
+
 import musicbrainzngs
 from datetime import datetime as dt
 from TikTagServices.ServiceError import ServiceError
 from TikTagServices.FuzzyComparer import FuzzyComparer
 
 class MusicBrainzDB(object):
+    """MusicBrainz class service implementation and parsing"""
     METHOD_COUNT = 3
     
     def __init__(self):
@@ -35,7 +43,7 @@ class MusicBrainzDB(object):
                     if "artist-credit" in results:
                         for artistItem in results["artist-credit"]:
                             if "artist" in artistItem and "name" in artistItem["artist"]:
-                                if FuzzyComparer.Comparer(artistItem["artist"]["name"], artist):
+                                if FuzzyComparer.fuzzComparer(artistItem["artist"]["name"], artist):
                                     return True;
         else:
             if "artist-credit" in results:
@@ -60,7 +68,7 @@ class MusicBrainzDB(object):
                         recordingResult = record   
                         lowDate = "3000-12-30"
                         index = 0
-                        if "release-list" in recordingResult:
+                        if "release-list" in recordingResult and recordingResult["release-list"]:
                             for i, releaseItem in enumerate(recordingResult["release-list"]):
                                 if "date" in releaseItem:
                                     if len(releaseItem["date"]) == 10:
@@ -95,24 +103,25 @@ class MusicBrainzDB(object):
             if results:
                 lowDate = "3000-12-30"
                 index = 0
-                for i, releaseItem in enumerate(results["release-list"]):
-                    if self.checkRelease(results["release-list"][i], artist, release):   
-                        if "date" in releaseItem:
-                            if len(releaseItem["date"]) == 10:
-                                date1 = dt.strptime(releaseItem["date"], "%Y-%m-%d")
-                                date2 = dt.strptime(lowDate, "%Y-%m-%d")
-                            elif len(releaseItem["date"]) == 4:
-                                date1 = dt.strptime(releaseItem["date"] + "-12-30", "%Y-%m-%d")
-                                date2 = dt.strptime(lowDate, "%Y-%m-%d")
-                            else:
-                                continue
-                            if date2 > date1:
-                                if len(releaseItem["date"]) == 4:
-                                    lowDate = releaseItem["date"] + "-12-30"
+                if "release-list" in results and results["release-list"]:
+                    for i, releaseItem in enumerate(results["release-list"]):
+                        if self.checkRelease(results["release-list"][i], artist, release):   
+                            if "date" in releaseItem:
+                                if len(releaseItem["date"]) == 10:
+                                    date1 = dt.strptime(releaseItem["date"], "%Y-%m-%d")
+                                    date2 = dt.strptime(lowDate, "%Y-%m-%d")
+                                elif len(releaseItem["date"]) == 4:
+                                    date1 = dt.strptime(releaseItem["date"] + "-12-30", "%Y-%m-%d")
+                                    date2 = dt.strptime(lowDate, "%Y-%m-%d")
                                 else:
-                                    lowDate = releaseItem["date"]
-                                index = i
-                return results["release-list"][index]
+                                    continue
+                                if date2 > date1:
+                                    if len(releaseItem["date"]) == 4:
+                                        lowDate = releaseItem["date"] + "-12-30"
+                                    else:
+                                        lowDate = releaseItem["date"]
+                                    index = i
+                    return results["release-list"][index]
         return False
 
 
@@ -127,24 +136,25 @@ class MusicBrainzDB(object):
             if results:
                 lowDate = "3000-12-30"
                 index = 0
-                for i, releaseItem in enumerate(results["release-list"]):
-                    if self.checkRelease(results["release-list"][i], artist):   
-                        if "date" in releaseItem:
-                            if len(releaseItem["date"]) == 10:
-                                date1 = dt.strptime(releaseItem["date"], "%Y-%m-%d")
-                                date2 = dt.strptime(lowDate, "%Y-%m-%d")
-                            elif len(releaseItem["date"]) == 4:
-                                date1 = dt.strptime(releaseItem["date"] + "-12-30", "%Y-%m-%d")
-                                date2 = dt.strptime(lowDate, "%Y-%m-%d")
-                            else:
-                                continue
-                            if date2 > date1:
-                                if len(releaseItem["date"]) == 4:
-                                    lowDate = releaseItem["date"] + "-12-30"
+                if "release-list" in results and results["release-list"]:
+                    for i, releaseItem in enumerate(results["release-list"]):
+                        if self.checkRelease(results["release-list"][i], artist):   
+                            if "date" in releaseItem:
+                                if len(releaseItem["date"]) == 10:
+                                    date1 = dt.strptime(releaseItem["date"], "%Y-%m-%d")
+                                    date2 = dt.strptime(lowDate, "%Y-%m-%d")
+                                elif len(releaseItem["date"]) == 4:
+                                    date1 = dt.strptime(releaseItem["date"] + "-12-30", "%Y-%m-%d")
+                                    date2 = dt.strptime(lowDate, "%Y-%m-%d")
                                 else:
-                                    lowDate = releaseItem["date"]
-                                index = i
-                return results["release-list"][index]
+                                    continue
+                                if date2 > date1:
+                                    if len(releaseItem["date"]) == 4:
+                                        lowDate = releaseItem["date"] + "-12-30"
+                                    else:
+                                        lowDate = releaseItem["date"]
+                                    index = i
+                    return results["release-list"][index]
         return False
 
 
@@ -278,6 +288,6 @@ class MusicBrainzDB(object):
                     break
                 resultList = None
 
-        print(self.counter)
+        print("--------",self.counter)
         return finalDict
             

@@ -1,8 +1,16 @@
+# File: AcoustID.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: AcoustID fingerprinting
+
 import acoustid
 from collections import Counter
 import json
 
 class AcoustID(object):
+    """AcoustID service class (fingerprinting)"""
     def __init__(self):
         self.clientId = "MXg04WOm0X"
 

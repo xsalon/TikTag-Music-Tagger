@@ -1,3 +1,10 @@
+# File: SpotifyDB.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: Spotify service using official python API
+
 import spotipy
 from TikTagServices.FuzzyComparer import FuzzyComparer
 from datetime import datetime as dt
@@ -6,14 +13,16 @@ import json
 import sys
 
 class SpotifyDB(object):
+    """Spotify class service implementation and parsing"""
     SUBSTRINGS = ["feat.", "feat", "featuring", "ft", "ft.", "mix", "original", "extended", "edit", "radio", "ost", ]
+    
     def __init__(self):
         self.client_id = "18b12f99b644451f88d0460db3e35c74"
         self.client_secret = "94a01ec88f53412e83e62c4cd134486c"
         self.credentials = oauth2.SpotifyClientCredentials(client_id=self.client_id, client_secret=self.client_secret)
         token = self.credentials.get_access_token()
         self.sp = spotipy.Spotify(auth=token)
-        #self.counter = 0
+        self.counter = 0
 
 
     def chooseResult(self, item, title, artist, length, album=None):
@@ -155,6 +164,6 @@ class SpotifyDB(object):
         if "valence" in features and features["valence"]:
             finalDict["Mood"] = features["valence"]
 
-        #self.counter += 1
-        #print(self.counter)
+        self.counter += 1
+        print("-----------",self.counter)
         return finalDict

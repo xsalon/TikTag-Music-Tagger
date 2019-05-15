@@ -1,8 +1,15 @@
+# File: AcoustID.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: AcoustID fingerprinting
+
 from fuzzywuzzy import fuzz
 
 class FuzzyComparer(object):
     SUBSTRINGS = ["feat.", "feat", "featuring", "ft", "ft.", "mix", "original", "extended", 
-                  "edit", "radio", "ost", "with", "album version", "explicit", "clean"]
+                  "edit", "radio", "ost", "with", "album version", "explicit", "clean", "bonus", "track"]
 
     @staticmethod
     def fuzzComparer(resultTitle, givenTitle):

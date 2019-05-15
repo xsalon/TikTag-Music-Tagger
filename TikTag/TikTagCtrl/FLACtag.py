@@ -1,3 +1,10 @@
+# File: FLACtag.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: FLAC file manipulations using mutagen lib
+
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import PictureType
 from io import BytesIO
@@ -7,6 +14,7 @@ import datetime
 
 
 class AlbumArt(object):
+    """Metadata picture data object representation"""
     def __init__(self, tag):
         self.tag = tag
         if "." in str(PictureType(self.tag.type)):
@@ -18,7 +26,7 @@ class AlbumArt(object):
         try:
             img = Image.open(BytesIO(tag.data))
             self.width, self.height = img.size
-            self.depth = str(FLACtag.modeToBpp[img.mode]) + "bit"
+            self.depth = str(FLACtag.MODETOBPP[img.mode]) + "bit"
         except Exception:
             raise ModuleTaggerError("Unsupported or currupted embedded image found!", "")
         self.resolution = str(self.width) + "x" + str(self.height)
@@ -27,26 +35,10 @@ class AlbumArt(object):
 
 
 class FLACtag(object):
-    modeToBpp = {'1':1, 'L':8, 'P':8, 'RGB':24, 'RGBA':32, 'CMYK':32, 'YCbCr':24, 'I':32, 'F':32}
-    
-    def __init__(self, path):
-        self.file = FLAC(path)
-        self.hashValue = 0
+    """FLAC methods class"""
+    MODETOBPP = {'1':1, 'L':8, 'P':8, 'RGB':24, 'RGBA':32, 'CMYK':32, 'YCbCr':24, 'I':32, 'F':32}
 
-        #normalize name of key value
-        for key in self.file.tags.keys():
-            if " " in key:
-                newKey = key.replace(" ", "")
-                self.file[newKey] = self.file.pop(key)
-
-
-        for i in range(len(self.file.pictures)):
-            self.file.pictures[i] = self.file.pictures[i]
-            self.file.pictures[i].HashKey = i
-
-        self.hashValue = len(self.file.pictures)
-
-        self.tagKeys = {
+    TAGKEYS = {
                'Title' : 'title',
                'Artist' : 'artist',
                'Album' : 'album',
@@ -101,11 +93,26 @@ class FLACtag(object):
                'Release Track ID (MB)' : 'musicbrainz_releasetrackid', 
                'Release Group ID (MB)' : 'musicbrainz_releasegroupid', 
         }
+    
+    def __init__(self, path):
+        self.file = FLAC(path)
+        self.hashValue = 0
 
+        #normalize name of key value
+        for key in self.file.tags.keys():
+            if " " in key:
+                newKey = key.replace(" ", "")
+                self.file[newKey] = self.file.pop(key)
+
+        #add hash to vorbis pictures
+        for i in range(len(self.file.pictures)):
+            self.file.pictures[i] = self.file.pictures[i]
+            self.file.pictures[i].HashKey = i
+
+        self.hashValue = len(self.file.pictures)
  
     def generalInfo(self): 
         generalInfo = {}
-        #dalsie info v tooltipe
         
         if hasattr(self.file.info, 'length'):
             generalInfo["Duration"] = str(datetime.timedelta(seconds=int(self.file.info.length)))
@@ -132,7 +139,6 @@ class FLACtag(object):
 
 
     def metadata(self):
-        #print(str(dict(self.file.tags)))
         return dict(self.file.tags)
 
 
@@ -153,7 +159,7 @@ class FLACtag(object):
         try:
             img = Image.open(BytesIO(data))
             pic.width, pic.height = img.size
-            pic.depth = FLACtag.modeToBpp[img.mode]
+            pic.depth = FLACtag.MODETOBPP[img.mode]
         except Exception:
             raise ModuleTaggerError("Cannot open selected picture!", "") 
 
@@ -195,7 +201,7 @@ class FLACtag(object):
 
     def editTag(self, name, value):
         valueList = [x.strip() for x in value.split(',')]
-        self.file[self.tagKeys[name]] = valueList
+        self.file[FLACtag.TAGKEYS[name]] = valueList
         self.file.save()
 
 
@@ -205,8 +211,8 @@ class FLACtag(object):
         else:
             value = str(value)
         if name[0].isupper():
-            self.file[self.tagKeys[name]] = value
-        elif name in self.tagKeys.values():
+            self.file[FLACtag.TAGKEYS[name]] = value
+        elif name in FLACtag.TAGKEYS.values():
             self.file[name] = value
         self.file.save()
 

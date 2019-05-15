@@ -1,9 +1,17 @@
+# File: DiscogsDB.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: Discogs service using official python API
+
 import discogs_client
 import time
 from TikTagServices.ServiceError import ServiceError
 from TikTagServices.FuzzyComparer import FuzzyComparer
 
 class DiscogsDB(object):
+    """Discogs class service implementation and parsing"""
     def __init__(self):
         self.customerKey = "IHkJHfvrguwTouLOuOTl"
         self.secretKey = "doLEDwLjrQuEwJCRrdTVEsjgegqqNEQC"
@@ -227,7 +235,7 @@ class DiscogsDB(object):
         if not result:
             return False
 
-        print(self.counter)
+        print("--------", self.counter)
         self.counter += 1
         finalDict = self.makeTagDict(result, title, artist, finalDict, isRelease)
 

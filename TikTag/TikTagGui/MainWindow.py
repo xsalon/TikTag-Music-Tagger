@@ -1,3 +1,10 @@
+# File: MainWindow.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: Primary thread of app, contains GUI logic
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -20,6 +27,7 @@ import sys
 import os
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    """Main class of window application"""
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
@@ -31,7 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.settings = QSettings("FIT VUT", "TikTag");
         self.filePath = None
-        self.supportedFormats = Tagger.fileFormats
+        self.supportedFormats = Tagger.FILEFORMATS
         self.generalInfo = {}
         self.metadata = {}
         self.metadataCache = []
@@ -160,7 +168,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         path = self.fileModel.filePath(self.treeView.currentIndex())
         #logging.info('Fetching tags from file %s', path)
         
-        if os.path.isdir(path):
+        if os.path.isdir(path) or self.fileModel.isDir(self.treeView.currentIndex()):
             return
         
         self.filePath = path
@@ -187,16 +195,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except TaggerError as e:
             QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
             logging.error('%s %s', e.msg, e.src)
+            return
 
-        item = next((item for item in self.metadataCache if path in item.keys()), False)
-        if not item:
-            newDict = {}
-            newDict[path] = self.metadata
-            self.metadataCache.insert(self.indexCache, newDict)
-            if self.indexCache == 100:
-                self.indexCache = 0
-            else:
-                self.indexCache += 1
+        self.addToCache(path, self.metadata)
 
         oldState = self.tableWidget.blockSignals(True)
         self.tableWidget.setColumnCount(2)
@@ -226,6 +227,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.bigAlbumArtLabel.clear()
         self.albumArtLabel.clear()
         cover = QPixmap()
+
+        path = self.fileModel.filePath(self.treeView.currentIndex())
+        if os.path.isdir(path) or self.fileModel.isDir(self.treeView.currentIndex()):
+            return
         
         if self.errFound:
             self.errFound = False
@@ -271,8 +276,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionAddImgByUrl.triggered.connect(self.showAddImageByUrl)
 
         self.submenuType = self.ctxListWidget.addMenu("Type")      
-        for i in range(len(Tagger.imageTypes)):
-            self.ctxListWidgetActions.insert(i, self.submenuType.addAction(Tagger.imageTypes[i]))
+        for i in range(len(Tagger.IMAGETYPES)):
+            self.ctxListWidgetActions.insert(i, self.submenuType.addAction(Tagger.IMAGETYPES[i]))
             self.ctxListWidgetActions[i].triggered.connect(self.ctxListWidgetMapper.map)
             self.ctxListWidgetMapper.setMapping(self.ctxListWidgetActions[i], i)
 
@@ -406,7 +411,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.imgPathDialog = QDialog()
         self.uiImgPathDialog = PathDialog()
         self.uiImgPathDialog.setupUi(self.imgPathDialog)
-        for item in Tagger.imageTypes:
+        for item in Tagger.IMAGETYPES:
             self.uiImgPathDialog.imgTypeComboBox.addItem(item)
 
         self.uiImgPathDialog.openButton.clicked.connect(self.getImgPathDialog)
@@ -423,7 +428,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if path == "":
                 return
             desc = self.uiImgPathDialog.descLineEdit.text()
-            type = Tagger.imageTypes.index(self.uiImgPathDialog.imgTypeComboBox.currentText())
+            type = Tagger.IMAGETYPES.index(self.uiImgPathDialog.imgTypeComboBox.currentText())
             try:
                 if not Tagger.checkImageUnique(desc, self.filePath):
                     if not self.questionDialogYesNo("Overwrite Image", "Image with same description already exist. Do you want replace it?"):
@@ -445,7 +450,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.imgUrlDialog = QDialog()
         self.uiImgUrlDialog = UrlDialog()
         self.uiImgUrlDialog.setupUi(self.imgUrlDialog)
-        for item in Tagger.imageTypes:
+        for item in Tagger.IMAGETYPES:
             self.uiImgUrlDialog.imgTypeComboBox.addItem(item)
 
 
@@ -460,7 +465,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if url == "":
                 return
             desc = self.uiImgUrlDialog.descLineEdit.text()
-            type = Tagger.imageTypes.index(self.uiImgUrlDialog.imgTypeComboBox.currentText())
+            type = Tagger.IMAGETYPES.index(self.uiImgUrlDialog.imgTypeComboBox.currentText())
             try:
                 if not Tagger.checkImageUnique(desc, self.filePath):
                     if not self.questionDialogYesNo("Overwrite Image", "Image with same description already exist. Do you want replace it?"):
@@ -469,6 +474,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             except TaggerError as e:
                 QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
                 logging.error('%s %s', e.msg, e.src)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
+                logging.error('%s', str(e))
             self.fetchImages()
 
 
@@ -536,7 +544,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def openFiles(self):
         #logging.info('opening file %s', self.filePath)
         for item in self.treeView.selectedIndexes():
-            if item.column() == 0:  
+            if item.column() == 0 and not self.fileModel.isDir(item):  
                 path = self.fileModel.filePath(item)
                 os.startfile(path)
 
@@ -579,7 +587,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def refreshFileModel(self):
-        self.changeWorkDirectory(self.fileModel.filePath(self.treeView.rootIndex()))
+        path = self.fileModel.filePath(self.treeView.rootIndex())
+        self.changeWorkDirectory(self.fileModel.filePath(self.treeView.rootIndex().parent()))
+        self.changeWorkDirectory(path)
 
 
     def disableFileActions(self):
@@ -599,7 +609,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if indexesCount > 0:
             self.actionDelete.setEnabled(True)
 
-            if all(not self.fileModel.isDir(item) for item in indexes):
+            #if all(not self.fileModel.isDir(item) for item in indexes):
+            if not all(self.fileModel.isDir(item) for item in indexes):
                 self.actionTagToFile.setEnabled(True)
                 self.actionFileToTag.setEnabled(True)
                 self.actionDeleteTag.setEnabled(True)
@@ -620,7 +631,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def deleteTag(self):
         for item in self.treeView.selectedIndexes():
-                if item.column() == 0:
+                if item.column() == 0 and not self.fileModel.isDir(item):
                        path = self.fileModel.filePath(item)
                        #logging.info('Deleting tag from %s', path)
                        try:
@@ -634,7 +645,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def revertFile(self):
         for item in self.treeView.selectedIndexes():
-                if item.column() == 0:
+                if item.column() == 0 and not self.fileModel.isDir(item):
                        path = self.fileModel.filePath(item)
                       # logging.info('Reverting tag in %s', path)
                        metaItem = next((metaItem for metaItem in self.metadataCache if path in metaItem.keys()), False)
@@ -654,6 +665,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fetchTags()
 
 
+    def addToCache(self, path, metadata):
+        itemCache = next((itemIter for itemIter in self.metadataCache if path in itemIter.keys()), False)
+        if not itemCache:
+            newDict = {}
+            newDict[path] = metadata
+            self.metadataCache.insert(self.indexCache, newDict)
+            if self.indexCache == 300:
+                self.indexCache = 0
+            else:
+                self.indexCache += 1
+
+
     #---------------------------------TAG TO FILE--------------------------------------------------
                  
     def initTagToFileName(self):
@@ -661,7 +684,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uiTagFileDialog = TagFileDialog()
         self.uiTagFileDialog.setupUi(self.tagFileDialog)
 
-        for key in Tagger.generalKeys:
+        for key in Tagger.GENERALKEYS:
             self.uiTagFileDialog.tagListComboBox.addItem(key)
 
         self.uiTagFileDialog.addTagButton.clicked.connect(self.chooseTagFileProp)
@@ -673,7 +696,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.previewTagToFile()
         if self.tagFileDialog.exec() == QDialog.Accepted:
             for item in self.treeView.selectedIndexes():
-                 if item.column() == 0:
+                 if item.column() == 0 and not self.fileModel.isDir(item):
                         path = self.fileModel.filePath(item)
                         #logging.info('Tag to file for %s', path)
                         if not QFile.rename(path, os.path.join(os.path.dirname(path), self.procTagToFileName(path))):
@@ -732,7 +755,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fileTagDialog.setWindowTitle("File - Tag")
         self.uiFileTagDialog.formatStringPreview.setWordWrap(True)
 
-        for key in Tagger.generalKeys:
+        for key in Tagger.GENERALKEYS:
             self.uiFileTagDialog.tagListComboBox.addItem(key)
 
         self.uiFileTagDialog.addTagButton.clicked.connect(self.chooseFileTagProp)
@@ -801,15 +824,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.previewFileToTag()
         if self.fileTagDialog.exec() == QDialog.Accepted:
             for item in self.treeView.selectedIndexes():
-                     if item.column() == 0:
+                     if item.column() == 0 and not self.fileModel.isDir(item):
                             path = self.fileModel.filePath(item)
                            # logging.info('File to tag for %s', path)
-                            for key, value in self.procFileToTagName(path).items():
-                                try:
-                                    Tagger.putTag(key, value, path)
-                                except TaggerError as e:
-                                    QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                                    logging.error('%s %s', e.msg, e.src)
+                            retDict = self.procFileToTagName(path)
+                            if retDict:
+                                for key, value in retDict.items():
+                                    try:
+                                        Tagger.putTag(key, value, path)
+                                    except TaggerError as e:
+                                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                        logging.error('%s %s', e.msg, e.src)
             self.fetchTags()
             self.fetchImages()
 
@@ -840,7 +865,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         _translate = QCoreApplication.translate
         self.uiFolderByTagDialog.checkBoxRemove.setText(_translate("Dialog", "Remove original files"))
 
-        for key in Tagger.generalKeys:
+        for key in Tagger.GENERALKEYS:
             self.uiFolderByTagDialog.tagListComboBox.addItem(key)
 
         self.uiFolderByTagDialog.addTagButton.clicked.connect(self.chooseFolderByTagProp)
@@ -882,24 +907,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def showFolderByTagName(self):
         if self.folderByTagDialog.exec() == QDialog.Accepted:
             for item in self.treeView.selectedIndexes():
-                if item.column() == 0:
+                if item.column() == 0 and not self.fileModel.isDir(item):
                        path = self.fileModel.filePath(item)
                        #logging.info('Tag to folder for %s', path)
                        dirPath = self.fileModel.filePath(self.treeView.rootIndex())
                        fileName = os.path.basename(path)
                        subDirs = [o for o in os.listdir(dirPath) if os.path.isdir(os.path.join(dirPath,o))]
                        dirName = self.procFolderByTagName(path)
-                       if dirName not in subDirs:
-                           self.fileModel.mkdir(self.treeView.rootIndex(), dirName)
+                       if dirName:
+                            if dirName not in subDirs:
+                                self.fileModel.mkdir(self.treeView.rootIndex(), dirName)
 
-                       if QFile.copy(path, os.path.join(dirPath, dirName, fileName)):
-                           if self.uiFolderByTagDialog.checkBoxRemove.isChecked():
-                               if not QFile.remove(path):
-                                   QMessageBox.critical(self, "Error", "Cannot delete selected file!", QMessageBox.Ok)
-                                   logging.error('%s %s', e.msg, e.src)
-                       else:
-                           QMessageBox.critical(self, "Error", "Cannot copy selected file!", QMessageBox.Ok)
-                           logging.error('%s %s', e.msg, e.src)
+                            if QFile.copy(path, os.path.join(dirPath, dirName, fileName)):
+                                if self.uiFolderByTagDialog.checkBoxRemove.isChecked():
+                                    if not QFile.remove(path):
+                                        QMessageBox.critical(self, "Error", "Cannot delete selected file!", QMessageBox.Ok)
+                                        logging.error('%s %s', e.msg, e.src)
+                            else:
+                                QMessageBox.critical(self, "Error", "Cannot copy selected file!", QMessageBox.Ok)
+                                logging.error('%s %s', e.msg, e.src)
 
         
     def previewFolderByTag(self):
@@ -1001,45 +1027,64 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                      self.onlineTagger.initServices(self.getServicesOrder(), code)
                  except ServiceError as e:
                      QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                     logging.error('%s', e.msg)
-    
+                     logging.error('1 %s', e.msg)
+   
     
     def getOnlineTags(self):
-        if not self.onlineTagger:            
-            self.onlineTagger = OnlineServices(self.getServicesOrder())
-            self.initOnlineServices()
-        elif not set(self.onlineTagger.services) == set(self.getServicesOrder()):
-            self.onlineTagger.services = self.getServicesOrder()
-            self.initOnlineServices()
-        elif not self.onlineTagger.servicesStatus():
-            self.onlineTagger.services = self.getServicesOrder()
-            self.initOnlineServices()
+        try:
+            if not self.onlineTagger: 
+                self.onlineTagger = OnlineServices(self.getServicesOrder())
+                self.initOnlineServices()
+            elif not set(self.onlineTagger.services) == set(self.getServicesOrder()):
+                self.onlineTagger.services = self.getServicesOrder()
+                self.initOnlineServices()
+            elif not self.onlineTagger.servicesStatus():
+                self.onlineTagger.services = self.getServicesOrder()
+                self.initOnlineServices()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
+            logging.error('%s', str(e))
+            return
         
         if self.onlineTagger:
             tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
             progressDialog = QProgressDialog("Downloading...", "Cancel", 0, tasksCount, self)
             progressDialog.setModal(True)
-            progressDialog.setWindowTitle("Get Tags")
+            progressDialog.setWindowTitle("Getting Tags")
+            foundCounter = 0
+            totalCounter = 0
             for i, item in enumerate(self.treeView.selectedIndexes()):
-               if item.column() == 0:
+               if item.column() == 0 and not self.fileModel.isDir(item):
                    progressDialog.setValue(i)
 
                    if progressDialog.wasCanceled():
                        break;
 
                    path = self.fileModel.filePath(item)
-                   #logging.info('Getting data from services for %s', path)
+                   metadata = None
+                   #logging.info('Getting data from services for %s', path)                   
+                   totalCounter += 1
                    try:
                        metadata = Tagger.fetchTags(path)
+                       self.addToCache(path, metadata)
                        result = self.onlineTagger.getTags(metadata, self.settings.value("Settings/Online/AcoustID"), path, Tagger.getOnlyLength(path))
                    except TaggerError as e:
-                       QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
                        logging.error('%s %s', e.msg, e.src)
+                       continue
                    except ServiceError as e:
+                       progressDialog.cancel()
+                       if e.code == 401:
+                           self.onlineTagger = None
                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                       break
                        logging.error('%s', e.msg)
+                       continue
+                   except Exception as e:
+                       progressDialog.cancel()
+                       QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
+                       logging.error('%s', str(e))
+                       return
 
+                   foundCounter += 1
                    if self.settings.value("Settings/Online/Mode") == "Complete":
                        for key, value in result.items():
                            if not key in metadata or not metadata[key]:
@@ -1047,7 +1092,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     try:
                                         Tagger.putTag(key, value, path)
                                     except TaggerError as e:
-                                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                        #QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
                                         logging.error('%s %s', e.msg, e.src)
                    else:
                        for key, value in result.items():
@@ -1055,7 +1100,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                 try:
                                     Tagger.putTag(key, value, path)
                                 except TaggerError as e:
-                                    QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                                    logging.error('%s %s', e.msg, e.src)
-            self.fetchTags()
+                                    #QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                    logging.error('%s %s', e.msg, e.src)  
+                    
             progressDialog.setValue(tasksCount)
+            QMessageBox.information(self, "Results", "Files found: " + str(foundCounter) + " out of " + str(totalCounter), QMessageBox.Ok)

@@ -1,11 +1,20 @@
+# File: OnlineServices.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: Online services interface for utilitazing all services potencial
+
 from TikTagServices.DiscogsDB import DiscogsDB as Discogs
 from TikTagServices.MusicBrainzDB import MusicBrainzDB as MusicBrainz
 from TikTagServices.SpotifyDB import SpotifyDB as Spotify
 from TikTagServices.AcoustID import AcoustID
 from TikTagServices.ServiceError import *
+from datetime import datetime as dt
 
 
 class OnlineServices(object):
+    """Class for getting parsed informations from implemented services"""
     SERVICES = ["Discogs", "Spotify", "Musicbrainz"]
 
     def __init__(self, services):
@@ -47,6 +56,24 @@ class OnlineServices(object):
             return False;
         return True
 
+
+    def checkOriginalDateValid(self, metadata):
+        if "Original Date" in metadata and metadata["Original Date"] and "Date" in metadata and metadata["Date"]:
+            if len(metadata["Original Date"]) ==  10 and len(metadata["Date"]) == 10:
+                date1 = dt.strptime(metadata["Original Date"], "%Y-%m-%d")
+                date2 = dt.strptime(metadata["Date"], "%Y-%m-%d")
+                return min(date1, date2)
+            elif len(metadata["Original Date"]) ==  4 and len(metadata["Date"]) == 4:
+                return min(metadata["Original Date"], metadata["Date"])
+            elif len(metadata["Original Date"]) ==  4 and len(metadata["Date"]) == 10:
+                date1 = dt.strptime(metadata["Original Date"] + "-12-30", "%Y-%m-%d")
+                date2 = dt.strptime(metadata["Date"], "%Y-%m-%d")
+                return min(date1, date2)
+            elif len(metadata["Original Date"]) ==  10 and len(metadata["Date"]) == 4:
+                date1 = dt.strptime(metadata["Original Date"], "%Y-%m-%d")
+                date2 = dt.strptime(metadata["Date"] + "-12-30", "%Y-%m-%d")
+                return min(date1, date2)
+        return False
    
     def getTags(self, metadata, enableFP=False , path=None, length=False):
         finalDict = {}
@@ -84,5 +111,13 @@ class OnlineServices(object):
                 finalDict = self.getTags(finalDict, 0, path)
             else:
                 return {}
+
+        originalDate = self.checkOriginalDateValid(finalDict)
+        if originalDate:
+            if len(str(originalDate)) > 3:
+                originalDate = str(originalDate)[:4]
+            finalDict["Original Date"] = originalDate
+
+        print(finalDict)
         
         return finalDict

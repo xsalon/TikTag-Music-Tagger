@@ -1,3 +1,10 @@
+# File: Tagger.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: Interface for TikTagCtrl module
+
 import mutagen
 import taglib
 import os.path
@@ -9,14 +16,15 @@ from TikTagCtrl.FLACtag import FLACtag
 from TikTagCtrl.TaggerError import *
 
 class Tagger(object):
-    fileFormats = ["mp3", "flac"]
-    imageFormats = ["jpg", "png", "jpeg"]
+    """Static methods for metadata manipulations"""
+    FILEFORMATS = ["mp3", "flac"]
+    IMAGEFORMATS = ["jpg", "png", "jpeg"]
    
-    imageTypes = ["Other", "File Icon", "Other File Icon", "Front Cover", "Back Cover", "Leaflet Page", "Media", 
+    IMAGETYPES = ["Other", "File Icon", "Other File Icon", "Front Cover", "Back Cover", "Leaflet Page", "Media", 
                   "Lead Artist", "Artist/Performer", "Conductor", "Band", "Composer", "Lyricist/Text Writer", "Recording Location", "During Recording",
                   "During Performance", "Screen Capture", "Fish", "Illustration", "Band/Artist Logo", "Publisher/Studio Logo"]
 
-    generalKeys = [
+    GENERALKEYS = [
                'Title',
                'Artist',
                'Album',
@@ -34,29 +42,28 @@ class Tagger(object):
                'Composer', 
                'Lyricist', 
                'Length'
-        ]
+                ]
+
 
     @classmethod
     def openFile(cls, path):
         fileExtension = os.path.splitext(path)[1][1:].strip().lower()
-        if fileExtension not in cls.fileFormats:
+        if fileExtension not in Tagger.FILEFORMATS:
            raise TaggerError("File not supported!", path)
-
         try:
-            if fileExtension == "mp3":
+           if fileExtension == "mp3":
                 file = MP3tag(path)
-            elif fileExtension == "flac":
+           elif fileExtension == "flac":
                 file = FLACtag(path)
         except MutagenError:
             raise TaggerError("Opening file failed!", path)
-
         return file
 
 
     @classmethod
     def getKeys(cls, path):
         file = cls.openFile(path)
-        return file.tagKeys
+        return file.TAGKEYS
 
 
     @classmethod
@@ -98,7 +105,7 @@ class Tagger(object):
     @classmethod
     def retrieveCoverImage(cls, path):
         file = cls.openFile(path)
-        data = None #co ak nema album art
+        data = None
 
         try:
             for item in file.retrieveImages():
@@ -220,5 +227,5 @@ class Tagger(object):
     
     @staticmethod
     def checkStatus(path):
-        #todo
+        #if needed in future
         pass

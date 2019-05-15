@@ -1,3 +1,10 @@
+# File: MP3tag.py
+# Project: TikTag
+# Author: Marek Salon (xsalon00)
+# Contact: xsalon00@stud.fit.vutbr.cz
+# Date: 10.5.2019
+# Description: MP3 file manipulations using mutagen lib
+
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import BitrateMode
@@ -11,9 +18,9 @@ import os
 
 
 class AlbumArt():
+    """Metadata picture data object representation"""
     def __init__(self, tag):
         self.tag = tag
-        #popis pri hover
         if "." in str(tag.type):
             self.type = str(tag.type).split('.')[1]
         else:
@@ -35,23 +42,8 @@ class AlbumArt():
 
 
 class MP3tag(object):
-    def __init__(self, path):
-        self.file = MP3(path, ID3=EasyID3)
-        self.id3file = ID3(path)
-
-        self.bitrateModeTable = {
-            BitrateMode.UNKNOWN : "CBR",
-            BitrateMode.CBR : "CBR",
-            BitrateMode.VBR : "VBR",
-            BitrateMode.ABR : "ABR"
-        }
-
-        EasyID3.RegisterTextKey("initialkey", "TKEY")
-        EasyID3.RegisterTextKey("comment", "COMM")
-        EasyID3.RegisterTextKey("modified", "TPE4")
-        EasyID3.RegisterTXXXKey('tiktag', 'TikTag')
-
-        self.tagKeys = {
+     """FLAC methods class"""
+     TAGKEYS = {
                'Title' : 'title',
                'Artist' : 'artist',
                'Album' : 'album',
@@ -105,107 +97,117 @@ class MP3tag(object):
                'AcoustID' : 'acoustid_id'  
         }
 
- 
-    def generalInfo(self):
-        generalInfo = {}
-        #dalsie info v tooltipe
+     def __init__(self, path):
+         self.file = MP3(path, ID3=EasyID3)
+         self.id3file = ID3(path)
+     
+         self.bitrateModeTable = {
+             BitrateMode.UNKNOWN : "CBR",
+             BitrateMode.CBR : "CBR",
+             BitrateMode.VBR : "VBR",
+             BitrateMode.ABR : "ABR"
+         }
+     
+         EasyID3.RegisterTextKey("initialkey", "TKEY")
+         EasyID3.RegisterTextKey("comment", "COMM")
+         EasyID3.RegisterTextKey("modified", "TPE4")
+         EasyID3.RegisterTXXXKey('tiktag', 'TikTag')
+
+
+     def generalInfo(self):
+         generalInfo = {}
+         #dalsie info v tooltipe
+         
+         if hasattr(self.file.info, 'length'):
+             generalInfo["Duration"] = str(datetime.timedelta(seconds=int(self.file.info.length)))
+         
+         if hasattr(self.file.info, 'sample_rate'):
+             generalInfo["Sample Rate"] = str(self.file.info.sample_rate) + " Hz"
+         
+         if hasattr(self.file.info, 'channels'):
+             generalInfo["Channels"] = str(self.file.info.channels)
+         
+         if hasattr(self.file.info, 'bitrate'):
+             generalInfo["Bitrate"] = str(int(self.file.info.bitrate / 1000)) + " kbps"
+         
+         if hasattr(self.file.info, 'bitrate_mode'):
+             generalInfo["Codec"] = "MP3 " + self.bitrateModeTable[self.file.info.bitrate_mode]
         
-        if hasattr(self.file.info, 'length'):
-            generalInfo["Duration"] = str(datetime.timedelta(seconds=int(self.file.info.length)))
-        
-        if hasattr(self.file.info, 'sample_rate'):
-            generalInfo["Sample Rate"] = str(self.file.info.sample_rate) + " Hz"
-        
-        if hasattr(self.file.info, 'channels'):
-            generalInfo["Channels"] = str(self.file.info.channels)
-        
-        if hasattr(self.file.info, 'bitrate'):
-            generalInfo["Bitrate"] = str(int(self.file.info.bitrate / 1000)) + " kbps"
-        
-        if hasattr(self.file.info, 'bitrate_mode'):
-            generalInfo["Codec"] = "MP3 " + self.bitrateModeTable[self.file.info.bitrate_mode]
-       
-        return generalInfo
-
-
-    def getLength(self):
-        if hasattr(self.file.info, 'length'):
-            return self.file.info.length
-        else:
-            return False
-
-
-    def metadata(self):
-        #print(EasyID3.valid_keys.keys())
-        #print(dict(self.file.tags))
-        return dict(self.file.tags)
-
-
-    def retrieveImages(self):
-        imgList = []
-        for image in self.id3file.getall("APIC"):
-            imgList.append(AlbumArt(image))
-        return imgList
-
-
-    def addImage(self, desc, type, data, format):
-        self.id3file.add(APIC(3, 'image/' + str(format), type, desc, data))
-        self.id3file.save()
-
-
-    def changeImageType(self, type, hash):
-        image = self.id3file.getall(hash)
-        image[0].type = type
-        self.id3file.save()
-
-
-    def changeImageDesc(self, desc, hash):
-        image = self.id3file.getall(hash)
-        image[0].desc = desc
-        self.id3file.save()
-
-
-    def deleteImage(self, hash):
-        self.id3file.delall(hash)
-        self.id3file.save()
-
-
-    def deleteAllImages(self):
-        self.id3file.delall("APIC")
-        self.id3file.save()
-
-    
-    def editTag(self, name, value):
-        valueList = [x.strip() for x in value.split(',')]
-        self.file[self.tagKeys[name]] = valueList
-        self.file.save()
-
-
-    def putTag(self, name, value):
-        if type(value) is list:
-            value = [str(i) for i in value]
-        else:
-            value = str(value)
-        if name[0].isupper():
-            self.file[self.tagKeys[name]] = value
-        elif name in self.tagKeys.values():
-            self.file[name] = value
-        self.file.save()
-
-
-    def deleteTag(self):
-        self.file.delete()
-        self.file.save()
-
-
-    def checkImageUnique(self, desc):
-        for image in self.id3file.getall("APIC"):
-            if image.desc == desc:
-                return False
-        return True
-               
-
-
-
-
-
+         return generalInfo
+     
+     
+     def getLength(self):
+         if hasattr(self.file.info, 'length'):
+             return self.file.info.length
+         else:
+             return False
+     
+     
+     def metadata(self):
+         #print(EasyID3.valid_keys.keys())
+         #print(dict(self.file.tags))
+         return dict(self.file.tags)
+     
+     
+     def retrieveImages(self):
+         imgList = []
+         for image in self.id3file.getall("APIC"):
+             imgList.append(AlbumArt(image))
+         return imgList
+     
+     
+     def addImage(self, desc, type, data, format):
+         self.id3file.add(APIC(3, 'image/' + str(format), type, desc, data))
+         self.id3file.save()
+     
+     
+     def changeImageType(self, type, hash):
+         image = self.id3file.getall(hash)
+         image[0].type = type
+         self.id3file.save()
+     
+     
+     def changeImageDesc(self, desc, hash):
+         image = self.id3file.getall(hash)
+         image[0].desc = desc
+         self.id3file.save()
+     
+     
+     def deleteImage(self, hash):
+         self.id3file.delall(hash)
+         self.id3file.save()
+     
+     
+     def deleteAllImages(self):
+         self.id3file.delall("APIC")
+         self.id3file.save()
+     
+     
+     def editTag(self, name, value):
+         valueList = [x.strip() for x in value.split(',')]
+         self.file[MP3tag.TAGKEYS[name]] = valueList
+         self.file.save()
+     
+     
+     def putTag(self, name, value):
+         if type(value) is list:
+             value = [str(i) for i in value]
+         else:
+             value = str(value)
+         if name[0].isupper():
+             self.file[MP3tag.TAGKEYS[name]] = value
+         elif name in MP3tag.TAGKEYS.values():
+             self.file[name] = value
+         self.file.save()
+     
+     
+     def deleteTag(self):
+         self.file.delete()
+         self.file.save()
+     
+     
+     def checkImageUnique(self, desc):
+         for image in self.id3file.getall("APIC"):
+             if image.desc == desc:
+                 return False
+         return True

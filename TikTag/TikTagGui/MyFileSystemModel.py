@@ -10,7 +10,7 @@ class MyFileSystemModel(QFileSystemModel):
         self.headers = headers
 
         filterFormatsList = []
-        for format in Tagger.fileFormats:
+        for format in Tagger.FILEFORMATS:
             filterFormatsList.append("*." + format)
         
         self.setNameFilters(filterFormatsList)
