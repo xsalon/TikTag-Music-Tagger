@@ -16,7 +16,7 @@ class MusicBrainzDB(object):
     
     def __init__(self):
         musicbrainzngs.set_useragent("TikTag", "1.0")
-        #self.counter = 0
+        self.counter = 0
 
 
     def checkRecording(self, results, artist, title, length=False): 
@@ -270,24 +270,24 @@ class MusicBrainzDB(object):
                 if resultList and len(resultList) == 2:
                     finalDict = self.mapRecordingResult(resultList[0], finalDict,)
                     finalDict = self.mapReleaseResult(resultList[1], finalDict)
-                    #self.counter += 1
+                    self.counter += 1
                     break
                 resultList = None
             if i == 1:
                 resultList = self.getByCatno(metadata)
                 if resultList:
                     finalDict = self.mapReleaseResult(resultList, finalDict)
-                    #self.counter += 1
+                    self.counter += 1
                     break
                 resultList = None
             if i == 2:
                 resultList = self.getByAlbum(metadata)
                 if resultList:
                     finalDict = self.mapReleaseResult(resultList, finalDict)
-                    #self.counter += 1
+                    self.counter += 1
                     break
                 resultList = None
 
-        #print("--------",self.counter)
+        print("--------",self.counter)
         return finalDict
             

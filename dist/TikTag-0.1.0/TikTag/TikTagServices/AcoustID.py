@@ -8,7 +8,6 @@
 import acoustid
 from collections import Counter
 import json
-import sys
 
 class AcoustID(object):
     """AcoustID service class (fingerprinting)"""
@@ -20,9 +19,6 @@ class AcoustID(object):
             return data.most_common(1)[0][0]
 
     def getFingerprintedData(self, path):
-        if "acoustid" not in sys.modules:
-            return False
-        
         finalDict = {
             "artist" : [],
             "title" : [],
@@ -31,7 +27,6 @@ class AcoustID(object):
             "Title" : None,
             "Release Track ID (MB)" : None,
             }
-
         artistCompare = []
         artistList = []
         resultList = acoustid.match(self.clientId, path, parse=False)
@@ -51,7 +46,6 @@ class AcoustID(object):
 
         potentialArtist = self.mostCommon(artistCompare)
 
-        #choosing the most frequent result in top 10
         joinWord = ", "
         for item in resultList["results"]:
             if "recordings" in item:

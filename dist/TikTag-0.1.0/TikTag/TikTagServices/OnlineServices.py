@@ -74,7 +74,6 @@ class OnlineServices(object):
                 date2 = dt.strptime(metadata["Date"] + "-12-30", "%Y-%m-%d")
                 return min(date1, date2)
         return False
-
    
     def getTags(self, metadata, enableFP=False , path=None, length=False):
         finalDict = {}
@@ -119,13 +118,6 @@ class OnlineServices(object):
                 originalDate = str(originalDate)[:4]
             finalDict["Original Date"] = originalDate
 
-        if not "Title" in finalDict or finalDict["Title"]:
-            if "title" in metadata and metadata["Title"]:
-                finalDict["Title"] = metadata["title"]
-
-        if not "Artist" in finalDict or finalDict["Artist"]:
-            if "artist" in metadata and metadata["artist"]:
-                finalDict["Artist"] = metadata["artist"]
-
-        #print(finalDict)      
+        print(finalDict)
+        
         return finalDict

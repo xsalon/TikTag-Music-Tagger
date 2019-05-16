@@ -17,7 +17,7 @@ from TikTagCtrl.TaggerError import *
 class Tagger(object):
     """Static methods for metadata manipulations"""
     FILEFORMATS = ["mp3", "flac"]
-    IMAGEFORMATS = ["jpg", "png", "jpeg", "jfif"]
+    IMAGEFORMATS = ["jpg", "png", "jpeg"]
    
     IMAGETYPES = ["Other", "File Icon", "Other File Icon", "Front Cover", "Back Cover", "Leaflet Page", "Media", 
                   "Lead Artist", "Artist/Performer", "Conductor", "Band", "Composer", "Lyricist/Text Writer", "Recording Location", "During Recording",
@@ -54,8 +54,8 @@ class Tagger(object):
                 file = MP3tag(path)
            elif fileExtension == "flac":
                 file = FLACtag(path)
-        except MutagenError as e:
-            raise TaggerError("Cannot open file because " + str(e), path)
+        except MutagenError:
+            raise TaggerError("Opening file failed!", path)
         return file
 
 
@@ -119,7 +119,6 @@ class Tagger(object):
             return data
 
 
-
     @classmethod
     def retrieveSelectedImage(cls, hash, path):
         file = cls.openFile(path)
@@ -147,7 +146,7 @@ class Tagger(object):
             try:
                 data = open(src, 'rb').read()
                 format = imghdr.what("image", data)
-                if not format or format not in cls.IMAGEFORMATS:
+                if not format or format not in cls.imageFormats:
                     raise TaggerError("Unsupported image file format!", format)
                 else:
                     file.addImage(desc, type, data, format)
@@ -161,13 +160,13 @@ class Tagger(object):
                 response = requests.get(src)
                 data = response.content
                 format = imghdr.what("image", data)
-                if not format or format not in cls.IMAGEFORMATS:
+                if not format or format not in cls.imageFormats:
                     raise TaggerError("Unsupported image file format!", format)
                 else:
                     file.addImage(desc, type, data, format)
             except ModuleTaggerError as e:
                 raise TaggerError(e.msg, path)
-            except Exception as e:
+            except Exception:
                 raise TaggerError("Cannot load image from url!", src)             
 
         else:

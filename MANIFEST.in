@@ -1,0 +1,3 @@
+recursive-include TikTag/TikTagCtrl *
+recursive-include TikTag/TikTagGui *
+recursive-include TikTag/TikTagServices *

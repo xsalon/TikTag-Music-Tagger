@@ -2,7 +2,7 @@ QLabel#albumArtLabel {
 	 padding: 2px
  }
 
- QLabel#bigAlbumArtLabel {
+ QLabel#albumArtLabel {
 	 padding: 2px
  }
 

@@ -389,6 +389,7 @@
     <addaction name="actionFolderByTag"/>
     <addaction name="actionRevertFile"/>
     <addaction name="actionDeleteTag"/>
+    <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -401,11 +402,10 @@
      <string>Online</string>
     </property>
     <addaction name="actionGetOnlineTags"/>
-    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuTools"/>
    <addaction name="menuOnline"/>
+   <addaction name="menuTools"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionSelectFolder">

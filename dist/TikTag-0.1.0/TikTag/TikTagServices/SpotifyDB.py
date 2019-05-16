@@ -22,7 +22,7 @@ class SpotifyDB(object):
         self.credentials = oauth2.SpotifyClientCredentials(client_id=self.client_id, client_secret=self.client_secret)
         token = self.credentials.get_access_token()
         self.sp = spotipy.Spotify(auth=token)
-        #self.counter = 0
+        self.counter = 0
 
 
     def chooseResult(self, item, title, artist, length, album=None):
@@ -58,8 +58,7 @@ class SpotifyDB(object):
             'ISRC' : None,
             'Copyright' : [],
             'Length' : [],
-            'Mood' : None,
-            'Image' : None
+            'Mood' : None
         };
 
         if "artist" in metadata and "title" in metadata:
@@ -72,6 +71,7 @@ class SpotifyDB(object):
                 album = ' '.join(metadata["album"]).strip()
 
             results = self.sp.search(q=query, limit=10, type="track")
+            #print(length)
             
             if length:
                 length = length*1000
@@ -164,9 +164,6 @@ class SpotifyDB(object):
         if "valence" in features and features["valence"]:
             finalDict["Mood"] = features["valence"]
 
-        if "images" in album and len(album["images"]) > 0:
-            finalDict["Image"] = album["images"][0]["url"]
-
-        #self.counter += 1
-        #print("-----------",self.counter)
+        self.counter += 1
+        print("-----------",self.counter)
         return finalDict

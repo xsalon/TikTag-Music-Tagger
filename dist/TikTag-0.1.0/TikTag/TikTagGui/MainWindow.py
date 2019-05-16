@@ -18,7 +18,6 @@ from TikTagServices.OnlineServices import OnlineServices
 from TikTagCtrl.Tagger import Tagger
 from TikTagCtrl.TaggerError import *
 from TikTagServices.ServiceError import *
-import time
 import logging
 import acoustid
 import webbrowser
@@ -86,8 +85,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionRevertFile.triggered.connect(self.revertFile)
         self.actionSettings.triggered.connect(self.showSettings)
         self.actionGetOnlineTags.triggered.connect(self.getOnlineTags)
-        self.actionExit.triggered.connect(self.close)
-        self.actionAbout.triggered.connect(self.aboutDialog)
         
         self.actionLevelUp.setEnabled(False)
         self.actionCreateFolder.setEnabled(False)
@@ -373,7 +370,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def fileRenameCache(self, path, oldName, newName):
         oldKey = path + '/' + oldName
         newKey = path + '/' + newName
-        item = next((item for item in self.metadataCache if oldKey in item), False)
+        item = next((item for item in self.metadataCache if oldKey in item.keys()), False)
         if item:
             item[newKey] = item.pop(oldKey)
 
@@ -381,11 +378,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def renameItem(self):
         #logging.warning('Renaming %s', self.filePath)
         self.treeView.edit(self.fileModel.index(self.filePath))
-
-
-    def aboutDialog(self):
-        QMessageBox.information(self, "About", " TikTag Tagging Utility\n\n Made by Marek Salon (xsalon00)"
-                     + "\n Project for bachelor thesis, FIT VUT Brno\n Icons by Freepic from www.flaticon.com ", QMessageBox.Ok)
 
 
     def bigImageChange(self):
@@ -488,7 +480,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.fetchImages()
 
 
-
     def changeImageType(self, type):
         #logging.info('Changing image type %s', self.filePath)
         try:
@@ -563,20 +554,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def deleteFiles(self):
-        isMulti = True
         for item in self.treeView.selectedIndexes():
             if item.column() == 0:
                 #logging.info('Deleting %s', self.fileModel.filePath(item))
                 if self.fileModel.isDir(item):
                     if not self.fileModel.rmdir(item):
-                        if isMulti:
-                            if self.questionDialogYesNo("Delete Folder", "This folder contains files, are you sure to delete it?"):
-                                dirToRemove = QDir(self.fileModel.filePath(item))
-                                dirToRemove.removeRecursively()
-                                isMulti = False
-                        else:
-                                dirToRemove = QDir(self.fileModel.filePath(item))
-                                dirToRemove.removeRecursively()
+                        if self.questionDialogYesNo("Delete Folder", "This folder contains files, are you sure to delete it?"):
+                            dirToRemove = QDir(self.fileModel.filePath(item))
+                            dirToRemove.removeRecursively()
                 else:
                     self.fileModel.remove(item)
 
@@ -645,49 +630,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def deleteTag(self):
-        tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
-        progressDialog = QProgressDialog("Processing...", "Cancel", 0, tasksCount, self)
-        progressDialog.setModal(True)
-        progressDialog.setWindowTitle("Delete Tag")
-        for i, item in enumerate(self.treeView.selectedIndexes()):
+        for item in self.treeView.selectedIndexes():
                 if item.column() == 0 and not self.fileModel.isDir(item):
-                       progressDialog.setValue(i)
-                       if progressDialog.wasCanceled():
-                            break
-
                        path = self.fileModel.filePath(item)
-
-                       try:
-                            metadata = Tagger.fetchTags(path)
-                       except TaggerError as e:
-                            logging.error('%s %s', e.msg, e.src)
-
-                       self.addToCache(path, metadata)
                        #logging.info('Deleting tag from %s', path)
                        try:
                             Tagger.deleteTag(path)
                        except TaggerError as e:
-                            progressDialog.cancel()
                             QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
                             logging.error('%s %s', e.msg, e.src)
-        progressDialog.setValue(tasksCount)
         self.fetchTags()
         self.fetchImages()
 
 
     def revertFile(self):
-        tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
-        progressDialog = QProgressDialog("Processing...", "Cancel", 0, tasksCount, self)
-        progressDialog.setModal(True)
-        progressDialog.setWindowTitle("Revert Tag")
-        for i, item in enumerate(self.treeView.selectedIndexes()):
+        for item in self.treeView.selectedIndexes():
                 if item.column() == 0 and not self.fileModel.isDir(item):
-                       progressDialog.setValue(i)
-                       if progressDialog.wasCanceled():
-                            break
                        path = self.fileModel.filePath(item)
                       # logging.info('Reverting tag in %s', path)
-                       metaItem = next((metaItem for metaItem in self.metadataCache if path in metaItem), False)
+                       metaItem = next((metaItem for metaItem in self.metadataCache if path in metaItem.keys()), False)
                        if metaItem:
                            try:
                                 metadata = Tagger.fetchTags(path)
@@ -699,20 +660,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                         Tagger.putTag(key, value, path)
 
                            except TaggerError as e:
-                               progressDialog.cancel()
                                QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
                                logging.error('%s %s', e.msg, e.src)
-        progressDialog.setValue(tasksCount)
         self.fetchTags()
 
 
     def addToCache(self, path, metadata):
-        itemCache = next((itemIter for itemIter in self.metadataCache if path in itemIter), False)
+        itemCache = next((itemIter for itemIter in self.metadataCache if path in itemIter.keys()), False)
         if not itemCache:
             newDict = {}
             newDict[path] = metadata
             self.metadataCache.insert(self.indexCache, newDict)
-            if self.indexCache == 1000:
+            if self.indexCache == 300:
                 self.indexCache = 0
             else:
                 self.indexCache += 1
@@ -736,21 +695,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uiTagFileDialog.formatStringPreview.clear()   
         self.previewTagToFile()
         if self.tagFileDialog.exec() == QDialog.Accepted:
-            tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
-            progressDialog = QProgressDialog("Processing...", "Cancel", 0, tasksCount, self)
-            progressDialog.setModal(True)
-            progressDialog.setWindowTitle("Tag - File")
-            for i, item in enumerate(self.treeView.selectedIndexes()):
+            for item in self.treeView.selectedIndexes():
                  if item.column() == 0 and not self.fileModel.isDir(item):
-                        progressDialog.setValue(i)
-                        if progressDialog.wasCanceled():
-                            break
                         path = self.fileModel.filePath(item)
                         #logging.info('Tag to file for %s', path)
                         if not QFile.rename(path, os.path.join(os.path.dirname(path), self.procTagToFileName(path))):
-                            if len(self.treeView.selectedIndexes()) == 1:
-                                QMessageBox.warning(self, "Warning", "File with same name already exists!", QMessageBox.Ok)
-            progressDialog.setValue(tasksCount)
+                            QMessageBox.warning(self, "Warning", "File with same name already exists!", QMessageBox.Ok)
             
    
     def procTagToFileName(self, path):
@@ -873,36 +823,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.uiFileTagDialog.formatStringPreview.clear()
         self.previewFileToTag()
         if self.fileTagDialog.exec() == QDialog.Accepted:
-            tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
-            progressDialog = QProgressDialog("Processing...", "Cancel", 0, tasksCount, self)
-            progressDialog.setModal(True)
-            progressDialog.setWindowTitle("File - Tag")
-            for i, item in enumerate(self.treeView.selectedIndexes()):
-                if item.column() == 0 and not self.fileModel.isDir(item):
-                    progressDialog.setValue(i)
-                    if progressDialog.wasCanceled():
-                       break                            
-
-                    path = self.fileModel.filePath(item)
-
-                    try:
-                         metadata = Tagger.fetchTags(path)
-                    except TaggerError as e:
-                         logging.error('%s %s', e.msg, e.src)
-
-                    self.addToCache(path, metadata)
-                    #logging.info('File to tag for %s', path)
-                    retDict = self.procFileToTagName(path)
-                    if retDict:
-                        for key, value in retDict.items():
-                            try:
-                                Tagger.putTag(key, value, path)
-                            except TaggerError as e:
-                                progressDialog.cancel()
-                                QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                                logging.error('%s %s', e.msg, e.src)
-
-            progressDialog.setValue(tasksCount)
+            for item in self.treeView.selectedIndexes():
+                     if item.column() == 0 and not self.fileModel.isDir(item):
+                            path = self.fileModel.filePath(item)
+                           # logging.info('File to tag for %s', path)
+                            retDict = self.procFileToTagName(path)
+                            if retDict:
+                                for key, value in retDict.items():
+                                    try:
+                                        Tagger.putTag(key, value, path)
+                                    except TaggerError as e:
+                                        QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                        logging.error('%s %s', e.msg, e.src)
             self.fetchTags()
             self.fetchImages()
 
@@ -973,19 +905,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 
     
     def showFolderByTagName(self):
-        self.uiFolderByTagDialog.formatStringPreview.clear()
-        self.previewFolderByTag()
         if self.folderByTagDialog.exec() == QDialog.Accepted:
-            tasksCount = len([item for item in self.treeView.selectedIndexes() if item.column() == 0])
-            progressDialog = QProgressDialog("Processing...", "Cancel", 0, tasksCount, self)
-            progressDialog.setModal(True)
-            progressDialog.setWindowTitle("Tag - Folder")
-            for i, item in enumerate(self.treeView.selectedIndexes()):
+            for item in self.treeView.selectedIndexes():
                 if item.column() == 0 and not self.fileModel.isDir(item):
-                       progressDialog.setValue(i)
-                       if progressDialog.wasCanceled():
-                           break
-
                        path = self.fileModel.filePath(item)
                        #logging.info('Tag to folder for %s', path)
                        dirPath = self.fileModel.filePath(self.treeView.rootIndex())
@@ -995,15 +917,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                        if dirName:
                             if dirName not in subDirs:
                                 self.fileModel.mkdir(self.treeView.rootIndex(), dirName)
+
                             if QFile.copy(path, os.path.join(dirPath, dirName, fileName)):
                                 if self.uiFolderByTagDialog.checkBoxRemove.isChecked():
                                     if not QFile.remove(path):
                                         QMessageBox.critical(self, "Error", "Cannot delete selected file!", QMessageBox.Ok)
+                                        logging.error('%s %s', e.msg, e.src)
                             else:
                                 QMessageBox.critical(self, "Error", "Cannot copy selected file!", QMessageBox.Ok)
-                                progressDialog.cancel()
-                                return
-            progressDialog.setValue(tasksCount)
+                                logging.error('%s %s', e.msg, e.src)
 
         
     def previewFolderByTag(self):
@@ -1136,7 +1058,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                    progressDialog.setValue(i)
 
                    if progressDialog.wasCanceled():
-                       break
+                       break;
 
                    path = self.fileModel.filePath(item)
                    metadata = None
@@ -1166,32 +1088,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                    if self.settings.value("Settings/Online/Mode") == "Complete":
                        for key, value in result.items():
                            if not key in metadata or not metadata[key]:
-                               try:
-                                    if key == "Image" and value and not Tagger.retrieveCoverImage(path):
-                                        Tagger.addImage("url", value, "TagByTikTag", 3, path)
-                                    elif value:
+                               if value:
+                                    try:
                                         Tagger.putTag(key, value, path)
-                               except TaggerError as e:
-                                    #QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                                    logging.error('%s %s', e.msg, e.src)
-                               except Exception as e:
-                                    QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
-                                    logging.error('%s', str(e))
+                                    except TaggerError as e:
+                                        #QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                        logging.error('%s %s', e.msg, e.src)
                    else:
                        for key, value in result.items():
-                            try:
-                                 if key == "Image" and value:
-                                     Tagger.addImage("url", value, "TagByTikTag", 3, path)
-                                 elif value:
-                                     Tagger.putTag(key, value, path)
-                            except TaggerError as e:
-                                 #QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                                 logging.error('%s %s', e.msg, e.src)
-                            except Exception as e:
-                                 QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
-                                 logging.error('%s', str(e))
+                          if value:
+                                try:
+                                    Tagger.putTag(key, value, path)
+                                except TaggerError as e:
+                                    #QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                                    logging.error('%s %s', e.msg, e.src)  
                     
             progressDialog.setValue(tasksCount)
-            self.fetchTags()
-            self.fetchImages()
             QMessageBox.information(self, "Results", "Files found: " + str(foundCounter) + " out of " + str(totalCounter), QMessageBox.Ok)

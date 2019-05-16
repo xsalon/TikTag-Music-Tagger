@@ -1,0 +1,5 @@
+AcoustID Linux
+sudo apt install ffmpeg acoustid-fingerprinter
+
+AcoustID Windows
+https://acoustid.org/chromaprint + set to system PATH or copy fpcalc.exe to C:Windows folder

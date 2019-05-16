@@ -17,7 +17,7 @@ class DiscogsDB(object):
         self.secretKey = "doLEDwLjrQuEwJCRrdTVEsjgegqqNEQC"
         self.client = discogs_client.Client("TikTag/1.0")
         self.client.set_consumer_key(self.customerKey, self.secretKey)
-        #self.counter = 0
+        self.counter = 0
 
 
     def getAuthUrl(self):
@@ -115,9 +115,6 @@ class DiscogsDB(object):
         
         if not finalDict["Album"] and result.title:
             finalDict["Album"] = result.title
-
-        if not finalDict["Image"] and "cover_image" in result.data:
-            finalDict["Image"] = result.data["cover_image"]
         
         if not finalDict["Album Artist"]:
             if "artists" in dir(result) and result.artists:
@@ -195,8 +192,7 @@ class DiscogsDB(object):
              'Lyricist' : [],
              'Length' : None,
              'Arranger' : [],
-             'Barcode' : None,
-             'Image' : None
+             'Barcode' : None
         };
 
         try:
@@ -239,12 +235,12 @@ class DiscogsDB(object):
         if not result:
             return False
 
-        #print("--------", self.counter)
-        #self.counter += 1
+        print("--------", self.counter)
+        self.counter += 1
         finalDict = self.makeTagDict(result, title, artist, finalDict, isRelease)
 
         if not isRelease and result.main_release:
             finalDict = self.makeTagDict(result.main_release, title, artist, finalDict, isRelease)
-
+        #print(str(finalDict))
         time.sleep(0.8)
         return finalDict

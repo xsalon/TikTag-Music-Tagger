@@ -1,0 +1,10 @@
+discogs-client
+ffmpeg
+fuzzywuzzy
+musicbrainzngs
+mutagen
+Pillow
+pyacoustid
+PyQt5
+python-Levenshtein
+spotipy
