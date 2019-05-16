@@ -1151,18 +1151,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                    except TaggerError as e:
                        logging.error('%s %s', e.msg, e.src)
                        continue
-                   #except ServiceError as e:
-                   #    progressDialog.cancel()
-                   #    if e.code == 401:
-                   #        self.onlineTagger = None
-                   #    QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                   #    logging.error('%s', e.msg)
-                   #    continue
-                   #except Exception as e:
-                   #    progressDialog.cancel()
-                   #    QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
-                   #    logging.error('%s', str(e))
-                   #    return
+                   except ServiceError as e:
+                       progressDialog.cancel()
+                       if e.code == 401:
+                           self.onlineTagger = None
+                       QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                       logging.error('%s', e.msg)
+                       continue
+                   except Exception as e:
+                       progressDialog.cancel()
+                       QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
+                       logging.error('%s', str(e))
+                       return
 
                    foundCounter += 1
                    if self.settings.value("Settings/Online/Mode") == "Complete":
