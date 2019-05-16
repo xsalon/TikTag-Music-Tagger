@@ -116,7 +116,6 @@ class MP3tag(object):
 
      def generalInfo(self):
          generalInfo = {}
-         #dalsie info v tooltipe
          
          if hasattr(self.file.info, 'length'):
              generalInfo["Duration"] = str(datetime.timedelta(seconds=int(self.file.info.length)))

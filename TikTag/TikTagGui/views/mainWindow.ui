@@ -346,11 +346,11 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionSelectFolder"/>
-   <addaction name="actionDelete"/>
    <addaction name="actionCreateFolder"/>
-   <addaction name="actionSetRootDir"/>
    <addaction name="actionLevelUp"/>
+   <addaction name="actionSetRootDir"/>
    <addaction name="actionRefresh"/>
+   <addaction name="actionDelete"/>
    <addaction name="separator"/>
    <addaction name="actionFileToTag"/>
    <addaction name="actionTagToFile"/>
@@ -376,6 +376,7 @@
     </property>
     <addaction name="actionSelectFolder"/>
     <addaction name="actionCreateFolder"/>
+    <addaction name="actionLevelUp"/>
     <addaction name="actionRefresh"/>
     <addaction name="actionDelete"/>
     <addaction name="actionExit"/>
@@ -416,6 +417,9 @@
    <property name="text">
     <string>Open Folder</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
   </action>
   <action name="actionTagToFile">
    <property name="icon">
@@ -424,6 +428,9 @@
    </property>
    <property name="text">
     <string>Tag - File</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+2</string>
    </property>
   </action>
   <action name="actionFileToTag">
@@ -434,6 +441,9 @@
    <property name="text">
     <string>File - Tag</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+1</string>
+   </property>
   </action>
   <action name="actionDelete">
    <property name="icon">
@@ -442,6 +452,9 @@
    </property>
    <property name="text">
     <string>Delete</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Del</string>
    </property>
   </action>
   <action name="actionDeleteTag">
@@ -452,6 +465,9 @@
    <property name="text">
     <string>Delete Tag</string>
    </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
   </action>
   <action name="actionRevertFile">
    <property name="icon">
@@ -460,6 +476,9 @@
    </property>
    <property name="text">
     <string>Revert Tag</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Backspace</string>
    </property>
   </action>
   <action name="actionFolderByTag">
@@ -470,6 +489,9 @@
    <property name="text">
     <string>Tag - Folder</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+3</string>
+   </property>
   </action>
   <action name="actionGetOnlineTags">
    <property name="icon">
@@ -478,6 +500,9 @@
    </property>
    <property name="text">
     <string>Get Tags</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="actionCreateFolder">
@@ -488,6 +513,9 @@
    <property name="text">
     <string>New Folder</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
   </action>
   <action name="actionLevelUp">
    <property name="icon">
@@ -495,10 +523,13 @@
      <normaloff>:/icons/level-up.png</normaloff>:/icons/level-up.png</iconset>
    </property>
    <property name="text">
-    <string>Return</string>
+    <string>Folder Up</string>
    </property>
    <property name="iconText">
     <string>Folder Up</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
   <action name="actionSetRootDir">
@@ -509,6 +540,9 @@
    <property name="text">
     <string>Set Folder</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionRefresh">
    <property name="icon">
@@ -517,6 +551,9 @@
    </property>
    <property name="text">
     <string>Refresh</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
   <action name="actionAbout">

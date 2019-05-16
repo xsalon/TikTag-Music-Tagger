@@ -105,7 +105,7 @@ class SpotifyDB(object):
                     else:
                         continue
                     if date2 > date1:
-                        if len(releaseItem["date"]) == 4:
+                        if len(str(releaseItem["date"])) == 4:
                             lowDate = releaseItem["date"] + "-12-30"
                         else:
                             lowDate = releaseItem["date"]
@@ -164,7 +164,7 @@ class SpotifyDB(object):
         if "valence" in features and features["valence"]:
             finalDict["Mood"] = features["valence"]
 
-        if "images" in album and len(album["images"]) > 0:
+        if "images" in album and album["images"]:
             finalDict["Image"] = album["images"][0]["url"]
 
         #self.counter += 1

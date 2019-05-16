@@ -59,17 +59,17 @@ class OnlineServices(object):
 
     def checkOriginalDateValid(self, metadata):
         if "Original Date" in metadata and metadata["Original Date"] and "Date" in metadata and metadata["Date"]:
-            if len(metadata["Original Date"]) ==  10 and len(metadata["Date"]) == 10:
+            if len(str(metadata["Original Date"])) ==  10 and len(str(metadata["Date"])) == 10:
                 date1 = dt.strptime(metadata["Original Date"], "%Y-%m-%d")
                 date2 = dt.strptime(metadata["Date"], "%Y-%m-%d")
                 return min(date1, date2)
-            elif len(metadata["Original Date"]) ==  4 and len(metadata["Date"]) == 4:
-                return min(metadata["Original Date"], metadata["Date"])
-            elif len(metadata["Original Date"]) ==  4 and len(metadata["Date"]) == 10:
+            elif len(str(metadata["Original Date"])) ==  4 and len(str(metadata["Date"])) == 4:
+                return min(int(metadata["Original Date"]), int(metadata["Date"]))
+            elif len(str(metadata["Original Date"])) ==  4 and len(str(metadata["Date"])) == 10:
                 date1 = dt.strptime(metadata["Original Date"] + "-12-30", "%Y-%m-%d")
                 date2 = dt.strptime(metadata["Date"], "%Y-%m-%d")
                 return min(date1, date2)
-            elif len(metadata["Original Date"]) ==  10 and len(metadata["Date"]) == 4:
+            elif len(str(metadata["Original Date"])) ==  10 and len(str(metadata["Date"])) == 4:
                 date1 = dt.strptime(metadata["Original Date"], "%Y-%m-%d")
                 date2 = dt.strptime(metadata["Date"] + "-12-30", "%Y-%m-%d")
                 return min(date1, date2)
@@ -120,7 +120,7 @@ class OnlineServices(object):
             finalDict["Original Date"] = originalDate
 
         if not "Title" in finalDict or finalDict["Title"]:
-            if "title" in metadata and metadata["Title"]:
+            if "title" in metadata and metadata["title"]:
                 finalDict["Title"] = metadata["title"]
 
         if not "Artist" in finalDict or finalDict["Artist"]:

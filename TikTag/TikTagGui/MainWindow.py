@@ -66,7 +66,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionMakeDir = QAction()
         self.actionRename = QAction()
         self.actionOpenFile = QAction()
-        self.actionDetails = QAction()
         self.actionRemoveFile = QAction()
         
         self.ctxTreeViewHeader = QMenu()   
@@ -96,9 +95,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.albumArtLabel.mousePressEvent = self.pageUpImage
         self.bigAlbumArtLabel.mousePressEvent = self.pageDownImage
-
-        self.treeView.clicked.connect(self.fetchTags) 
-        self.treeView.clicked.connect(self.fetchImages)
 
         self.listWidget.customContextMenuRequested.connect(self.showCtxListWidget)
         self.listWidget.itemClicked.connect(self.bigImageChange)
@@ -142,6 +138,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #self.treeView.header().setSectionResizeMode(1, QHeaderView.ResizeToContents);
 
         self.treeView.selectionModel().selectionChanged.connect(self.enableFileActions)
+        self.treeView.selectionModel().selectionChanged.connect(self.fetchTags)
+        self.treeView.selectionModel().selectionChanged.connect(self.fetchImages)
+        self.treeView.installEventFilter(self)
         self.fileModel.fileRenamed.connect(self.fileRenameCache)
         self.actionCreateFolder.setEnabled(True)
         self.actionLevelUp.setEnabled(True)
@@ -160,6 +159,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.treeView.setRootIndex(self.fileModel.index(folder))
         self.settings.setValue("MainWindow/lastDirPath", folder)
 
+    def eventFilter(self, widget, event):
+        if (event.type() == QEvent.KeyPress and
+            widget is self.treeView):
+            key = event.key()
+            if key == Qt.Key_Return:
+                self.openFiles()
+        return QWidget.eventFilter(self, widget, event)
     
     def fetchTags(self):
         self.labelDuration.setText("Duration: ")
@@ -325,17 +331,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionMakeDir.triggered.connect(self.newFolder)
         self.actionOpenFile = self.ctxTreeView.addAction("Open")
         self.actionRename = self.ctxTreeView.addAction("Rename")
-        self.actionDetails = self.ctxTreeView.addAction("Details")
         self.actionRemoveFile = self.ctxTreeView.addAction("Delete")
         self.actionOpenFile.triggered.connect(self.openFiles)
-        self.actionDetails.triggered.connect(self.getDetails)
         self.actionRename.triggered.connect(self.renameItem)
         self.actionRemoveFile.triggered.connect(self.deleteFiles)
 
 
     def showCtxTreeView(self):
         self.actionOpenFile.setVisible(False)
-        self.actionDetails.setVisible(False)
         self.actionRemoveFile.setVisible(False)
         self.actionRename.setVisible(False)
         self.actionMakeDir.setVisible(True)
@@ -344,7 +347,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if indexes:
             self.actionMakeDir.setVisible(False)
             self.actionOpenFile.setVisible(True)
-            self.actionDetails.setVisible(True)
             self.actionRemoveFile.setVisible(True)
 
         if len(indexes) == self.fileModel.columnCount():
@@ -1149,18 +1151,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                    except TaggerError as e:
                        logging.error('%s %s', e.msg, e.src)
                        continue
-                   except ServiceError as e:
-                       progressDialog.cancel()
-                       if e.code == 401:
-                           self.onlineTagger = None
-                       QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
-                       logging.error('%s', e.msg)
-                       continue
-                   except Exception as e:
-                       progressDialog.cancel()
-                       QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
-                       logging.error('%s', str(e))
-                       return
+                   #except ServiceError as e:
+                   #    progressDialog.cancel()
+                   #    if e.code == 401:
+                   #        self.onlineTagger = None
+                   #    QMessageBox.critical(self, "Error", e.msg, QMessageBox.Ok)
+                   #    logging.error('%s', e.msg)
+                   #    continue
+                   #except Exception as e:
+                   #    progressDialog.cancel()
+                   #    QMessageBox.critical(self, "Error", str(e), QMessageBox.Ok)
+                   #    logging.error('%s', str(e))
+                   #    return
 
                    foundCounter += 1
                    if self.settings.value("Settings/Online/Mode") == "Complete":
