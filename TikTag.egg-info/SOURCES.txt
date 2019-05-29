@@ -1,4 +1,5 @@
 MANIFEST.in
+README
 setup.py
 TikTag/__init__.py
 TikTag/images_rc.py
