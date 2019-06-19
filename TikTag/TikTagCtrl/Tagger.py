@@ -31,7 +31,6 @@ class Tagger(object):
                'Date',
                'Original Date', 
                'Genre',
-               'Composer', 
                'Track Number', 
                'Disc Number',
                'Catalog Number',

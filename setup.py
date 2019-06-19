@@ -22,6 +22,7 @@ setup(
 		"Pillow",
 		"pyacoustid",
 		"PyQt5",
+	    	#if required install also PyQt5-sip in selected Python environment
 		"python-Levenshtein",
 		"spotipy"
     ],
