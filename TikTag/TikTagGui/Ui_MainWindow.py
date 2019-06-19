@@ -313,7 +313,7 @@ class Ui_MainWindow(object):
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.menuOnline.setTitle(_translate("MainWindow", "Online"))
         self.actionSelectFolder.setText(_translate("MainWindow", "Open Folder"))
-        self.actionSelectFolder.setShortcut(_translate("MainWindow", "Ctrl+D"))
+        self.actionSelectFolder.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self.actionTagToFile.setText(_translate("MainWindow", "Tag - File"))
         self.actionTagToFile.setShortcut(_translate("MainWindow", "Alt+2"))
         self.actionFileToTag.setText(_translate("MainWindow", "File - Tag"))

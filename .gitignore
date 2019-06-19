@@ -4,6 +4,7 @@
 # My ignores
 dist/
 TikTag.egg-info/
+TikTag/TikTagGui/zmena.bat
 
 # User-specific files
 *.suo
